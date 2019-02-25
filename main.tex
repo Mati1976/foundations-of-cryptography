@@ -1,0 +1,389 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{lastpage}
+\usepackage{pgf}
+\usepackage{wrapfig}
+\usepackage{fancyvrb}
+\usepackage{fancyhdr}
+\usepackage{url}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{patterns}
+% \usetikzlibrary{crypto.symbols}
+\pagestyle{fancy}
+\setlength{\parindent}{0pt}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usetikzlibrary{shapes}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{amssymb}
+\newcommand{\inv}{^{\raisebox{.2ex}{$\scriptscriptstyle-1$}}}
+\newcommand{\ts}{\textsuperscript}
+
+% Remove hyphenation
+\usepackage[british]{babel}
+\tolerance=1
+\emergencystretch=\maxdimen
+\hyphenpenalty=10000
+\hbadness=10000
+\setlength{\parskip}{0.5cm plus4mm minus3mm}
+
+% Create header and footer
+\headheight 27pt
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{DD2448}
+\fancyhead[R]{Phillip Gajland}
+\fancyfoot[C]{\thepage\ (\pageref{LastPage})}
+
+% Create title page
+\title{Foundations of Cryptography}
+\subtitle{Summary of the course DD2448 taught at\\KTH Royal Institute of Technology by Douglas Wikström}
+\author{Phillip Gajland}
+\date{Spring 2019}
+
+\begin{document}
+\thispagestyle{empty}
+\maketitle
+
+\section*{Lecture 1 - Introduction \& Symmetric Cryptosystems}
+
+\subsection*{General}
+
+\begin{itemize}
+\item Alice encrypts a message $m$ using key $k$ and encryption algorithm $E$ such that $c = E_k(m)$. Bob decrypts the ciphertext $c$ using the same key $k$ and decryption algorithm  $E\inv$ such that $m = E_k\inv(c)$.
+\item Mathematically, a cryptosystem can be defined as a tuple $({\mathcal Gen},{\mathcal {P}}, E, E\inv)$ where:
+\begin{itemize}
+\item [$\circ$] ${\mathcal Gen}$ is a key generation algorithm for keys in the key space ${\mathcal {K}}$.
+\item [$\circ$] ${\mathcal {P}}$ is the set of plaintexts.
+\item [$\circ$] $E$ is a deterministic encryption algorithm.
+\item [$\circ$] $E\inv$ is a deterministic decryption algorithm.
+\end{itemize}
+such that $E_k\inv(E_k(m)) = m$ for every message $m \in {\mathcal {P}}$ and $k \in {\mathcal {K}}$
+\item The set ${\mathcal {C}} = E_k(m) \mid m \in {\mathcal {P}} \land k \in {\mathcal {K}}$ is called the set of ciphertexts.
+
+(Pronounced: \textit{$E_k(m)$ such that $m$ is in ${\mathcal {P}}$ and $k$ is in ${\mathcal {K}}$.} I.e. all combinations of keys $k$ and messages $m$.
+\end{itemize}
+
+\subsection*{Caesar Cipher}
+
+\begin{itemize}
+\item In an alphabet containing 26 letters, the key $k$ is such that $k \in \mathbb{Z}_{26}$.
+\item The plaintext $m = (m_1, ..., m_n) \in \mathbb{Z}_{26}^{n}$ gives ciphertext $c = (c_1, ..., c_n)$.
+\item Encryption is given by $c_i = m_i + k \mod 26$.
+\item Decryption is given by $m_i = c_i - k \mod 26$.
+\item The key space ${\mathcal {K}}$ is too small, making it susceptible to brute force attacks.
+\item A frequency analysis can be done by maximising the inner product $T(E\inv(C)) \cdot F$ where $T(s) \cdot F$ denotes the frequency table of string $s$ and the English language respectively.
+\end{itemize}
+
+\section*{Lecture 2 - More Symmetric Cryptosystems}
+
+\subsection*{Affine Cipher}
+
+\begin{itemize}
+\item The key $k$ is given by a random pair $(a, b)$, where $a \in \mathbb{Z}_{26}$ is relatively prime to 26, and $b \in \mathbb{Z}_{26}$.
+\item The plaintext $m = (m_1, ..., m_n) \in \mathbb{Z}_{26}^{n}$ gives ciphertext $c = (c_1, ..., c_n)$.
+\item Encryption is given by $c_i = am_i + b \mod 26$.
+\item Decryption is given by $m_i = (c_i - b)a^{-1} \mod 26$.
+\item \textsl{Relative primality of $a$ and 26 implies that $(a^{-1} \mod 26)$ exists.}
+\end{itemize}
+
+\subsection*{Substitution Cipher}
+
+\begin{itemize}
+\item Both the Caesar cipher and affine cipher are examples of substitution ciphers.
+\item The key is a random permutation $\sigma \in {\mathcal {S}}$ of the symbols in the alphabet, for some subset ${\mathcal {S}}$ of all permutations.
+\item The plaintext $m = (m_1, ..., m_n) \in \mathbb{Z}_{26}^{n}$ gives ciphertext $c = (c_1, ..., c_n)$.
+\item Encryption is given by $c_i = \sigma(m_i)$.
+\item Decryption is given by $m_i = \sigma^{-1}(c_i)$.
+\end{itemize}
+
+\subsubsection*{Generic Attacks on Substitution Ciphers}
+
+\begin{itemize}
+\item A \textbf{digram} is an ordered pair of symbols.
+\item A \textbf{trigram} is an ordered triple of symbols.
+\item It is useful to compute frequency tables for the most frequent digrams and trigrams, and not only the frequencies for individual symbols. 
+
+\begin{enumerate}
+\item Compute symbol / digram / trigram frequency tables for the candidate language and the ciphertext.
+\item Try to match symbols / digrams / trigrams with similar frequencies. 
+\item Try to recognise words to confirm guesses (using dictionary or Google).
+\item Repeat until the plaintext can be guessed.
+\end{enumerate}
+\item This is hard when several symbols have similar frequencies - a large amount of cipher text is needed.
+\end{itemize}
+
+\subsection*{Vigenère Cipher}
+
+\begin{itemize}
+\item The key is given by $k = (k_0, ..., k_{l - 1})$, where $k_i \in \mathbb{Z}_{26}$ is random.
+\item The plaintext $m = (m_1, ..., m_n) \in \mathbb{Z}_{26}^{n}$ gives ciphertext $c = (c_1, ..., c_n)$.
+\item Encryption is given by $c_i = m_i + k_{i \mod l} \mod 26$.
+\item Decryption is given by $m_i = c_i - k_{i \mod l} \mod 26$.
+\item \textsl{This gives a more uniform frequency table.}
+\end{itemize}
+
+\subsubsection*{Attack on Vigenère Cipher}
+
+\begin{itemize}
+\item Each probability distribution $p_1, ..., p_n$ on $n$ symbols may be viewed as a point $p = (p1, ..., p_n)$ on a $n - 1$ dimensional hyperplane in $\mathbb{R}^n$ orthogonal to the vector $\overline{1} = (1, ..., 1)$.
+\item Such a point $p = (p_1, ..., p_n)$ is at a distance $\sqrt{F(p)}$ from the origin, where $F(p) = \sum^{n}_{i = 1} p^2_i$.
+\item It is clear that $p$ is closest to the origin, when $p$ is the uniform distribution, i.e., when $F(p)$ is minimised.
+\item $F(p)$ is invariant under permutation of the underlying symbols. Use tools to check if a set of symbols is the result of some substitution cipher. 
+\begin{enumerate}
+\item For $l = 1, 2, 3, ...$ we form\\[0.25cm] 
+$
+\begin{pmatrix}
+C_{0} \\
+C_{1} \\
+\vdots \\
+C_{l-1} 
+\end{pmatrix} 
+=
+\begin{pmatrix}
+c_{0} & c_{l} & c_{2l} & \cdots \\
+c_{1} & c_{l+1} & c_{2l+1} & \cdots \\
+\vdots  & \vdots  & \vdots & \ddots \\
+c_{l-1} & c_{2l-1} & c_{3l-1} & \cdots 
+\end{pmatrix}$\\[0.25cm]
+and compute $f_l = \frac{1}{l} \sum^{l-1}_{i=0}F(C_i)$.
+\item The local maximum with smallest $l$ is probably the right length.
+\item Then attack each $C_i$ separately to recover $k_i$, using the attack against the Caesar cipher.
+\end{enumerate}
+\end{itemize}
+
+\subsection*{Hill Cipher}
+
+\begin{itemize}
+\item The key is given by $k = A$, where $a$ is an invertible $l \times l$-matrix over $\mathbb{Z}_{26}$.
+\item The plaintext $m = (m_1, ..., m_n) \in \mathbb{Z}_{26}^{n}$ gives ciphertext $c = (c_1, ..., c_n)$.
+\item Encryption is given by $(c_{i+0}, ..., c_{i+l-1}) = (m_{i+0}, ..., m_{i+l-1})A$.
+\item Decryption is given by $(c_{i+0}, ..., c_{i+l-1}) = (m_{i+0}, ..., m_{i+l-1})A^{-1}$.\\[0.25cm]
+for $i = 1, l + 1, 2l + 1, ...$
+\item The Hill cipher is easy to break using a \textbf{known plaintext attack}.
+\end{itemize}
+
+\subsection*{Permutation Cipher}
+
+\begin{itemize}
+\item The permutation cipher is a special case of the Hill cipher.
+\item The key is given by a random permutation $\pi \in \mathcal{S}$ for some subset $\mathcal{S}$ of the set of permutation of $\{0, 1, 2, ..., l -1\}$.
+\item The plaintext $m = (m_1, ..., m_n) \in \mathbb{Z}_{26}^{n}$ gives ciphertext $c = (c_1, ..., c_n)$.
+\item Encryption is given by $c_i = m_{\lfloor i / l \rfloor + \pi (i \mod l)}$.
+\item Decryption is given by $m_i = c_{\lfloor i / l \rfloor + \pi^{-1} (i \mod l)}$.
+\end{itemize}
+
+\subsection*{Summary of Simple Ciphers}
+
+\begin{itemize}
+\item Caesar cipher and affine cipher: $m_i \mapsto am_i + b$.
+\item Substitution cipher (generalise Caesar / affine): $m_i \mapsto \sigma(m_i)$.
+\item Vigenère cipher (more uniform frequency table): $m_i \mapsto m_i + k_{i \mod l}$.
+\item Hill cipher (invertible linear map): $(m_1, ..., m_l) \mapsto (m_1, ..., ..., m_l)A$.
+\item Transposition cipher (permutation): $(m_1, ..., m_l) \mapsto (m_{\pi(1)}, ..., m_{\pi(l)})$\\
+equivalent to: $(m_1, ..., m_l) \mapsto (m_1, ..., m_l)M_\pi$.
+\end{itemize}
+
+\subsection*{Good Block Ciphers}
+
+\begin{itemize}
+\item Simple ciphers are bad, but what makes a good block cipher?
+\item For every key a block-cipher with plaintext / ciphertext space $\{0, 1\}^n$ gives a permutation of $\{0, 1\}^n$.
+\begin{itemize}
+\item [$\circ$] What would be a good cipher?
+\end{itemize}
+\item A good cipher is one where each key gives a \textbf{randomly chosen permutation} of $\{0, 1\}^n$.
+\begin{itemize}
+\item [$\circ$] Why is this not possible?
+\end{itemize}
+\item The representation of a single typical function $\{0, 1\}^n \rightarrow \{0, 1\}^n$ requires roughly $n2^n$ bits $(147 \times 10^{6 \cdot 3}$ for $n = 64)$.
+\begin{itemize}
+\item [$\circ$] What should we look for instead?
+\end{itemize}
+\item \textbf{Idea:} Compose smaller weak ciphers into a large one. Mix the components thoroughly. Claude Shannon (1948) introduces two terms:
+\begin{itemize}
+\item [$\circ$] \textbf{Diffusion:} "In the method of diffusion the statistical structure of $M$ which leads to its redundancy is dissipated into long range statistics..."
+\item [$\circ$] \textbf{Confusion:} "The method of confusion is to make the relation between the simple statistics of $E$ and the simple description of $K$ a very complex and involved one."
+\end{itemize}
+\end{itemize}
+
+\section*{Lecture 3 - Substitution-Permutation Networks \& AES}
+
+\subsection*{Substitution-Permutation Networks}
+
+\begin{itemize}
+\item Block-size: We use a block-size of $n = l \times m$ bits.
+\item Key Schedule: Round $r$ uses its own round key $K_r$ derived from the key $K$ using a key schedule.
+\item Each Round the following is invoked:
+\begin{enumerate}
+\item Round Key: xor with the round key.
+\item Substitution: $l$ substitution boxes each acting on one $m$-bit word ($m$-bit S-Boxes).
+\item Permutation: A permutation $\pi_i$ acting on $\{1, ..., n\}$ to reorder the $n$ bits.
+\end{enumerate}
+\end{itemize}
+
+\subsection*{A Simple Block Cipher}
+
+\begin{itemize}
+\item $|P| = |C| = 16$
+\item 4 rounds
+\item $|K| = 32$
+\item $r$\ts{th} round key $K_r$ consists of the 4$r$\ts{th} to the $(4r + 16)$\ts{th} bits of key $K$.
+\item 4-bit S-Boxes
+\item S-Boxes the same $(S \neq S\inv)$
+\item $Y = S(X)$
+\item Can be described using 4 boolean functions.
+\end{itemize}
+
+\subsection*{Advanced Encryption Standard (AES)}
+
+\begin{itemize}
+\item Chosen in worldwide public competition 1997-2000. Probably no backdoors. Increased confidence!
+\item Winning proposal named "Rijndael", by Rijmen and Daemen.
+\item Family of 128-bit ciphers: \{Key bits, Rounds\} - \{128, 10\}, \{192, 12\}, \{256, 14\}. 
+\item The first key-recovery attacks on full AES found by Bogdanov, Khovratovich, and Rechberger was published in 2011 and is faster than brute force by a factor of about 4. 
+\item The algebraics of AES have made some people \textit{uneasy}, but they have been uneasy for years now...
+\begin{itemize}
+\item [$\circ$] AddRoundKey: xor with round key.
+\item [$\circ$] SubBytes: Substitution of bytes.
+\item [$\circ$] ShiftRows: Permutation of bytes.
+\item [$\circ$] MixXolumns: Linear map.
+\end{itemize}
+\end{itemize}
+
+\begin{itemize}
+\item The 128 bit state is interpreted as a $4 \times 4$ matrix of bytes.
+\begin{center}
+\input{matrix.tex}
+\end{center}
+\item Something like a mix between substitution, permutation, affine version of Hill cipher. In each round!
+\item SubBytes is a field inversion in $\mathbb{F}_{2^8}$ plus affine map in $\mathbb{F}_{2}^8$.
+\item ShiftRows is ac cyclic shift of bytes with offsets: 0, 1, 2, and 3.
+\item MixColumns is an invertible linear map over $\mathbb{F}_{2^8}$ (with irreducible polynomial $x^8 + x^4 +x^3 + x + 1)$ with good diffusion. 
+\item Decryption uses the following transforms:
+\begin{itemize}
+\item [$\circ$] AddRoundKey
+\item [$\circ$] InvSubBytes
+\item [$\circ$] InvShiftRows
+\item [$\circ$] InvMixColumns
+\end{itemize}
+\end{itemize}
+
+\subsection*{Feistel Networks}
+
+\begin{itemize}
+    \item Identical rounds are iterated, but with different round keys.
+    \item The input to the $i$\ts{th} round is divided in a left and right part, denoted $L^{i-1}$ and $R^{i-1}$.
+    \item $f$ is a function for which it is somewhat hard to find pre-images, but $f$ is \textbf{not invertible}!
+    \item One round is defined by:\\ 
+    $L^i = R^{i-1}$\\$R^i = L^{i-1} \oplus f(R^{i-1}, K^i)$\\
+    where $K^i$ is the $i$\ts{th} round key.
+    \item The inverse Feistel round is given by:\\ 
+    $L^{i-1} = R^i \oplus f(L^i, K^i)$\\$R^{i-1} = L^i$\\
+    I.e. reverse direction and swap left and right.
+\end{itemize}
+
+\subsection*{Data Encryption Standard (DES)}
+\begin{itemize}
+    \item Developed at IBM in 1975, or perhaps at NSA; not publicly known.
+    \item 16-round Feistel network.
+    \item Key schedule derives permuted bits for each round key from a 56-bit key. Supposedly not 64-bit due to parity bits.
+    \item DES's $f$-Function is given by: $f(R^{i-1}, K^i)$
+\end{itemize}
+
+\subsection*{Security of DES}
+\begin{itemize}
+    \item Brute Force: Try all $2^56$ keys. Done in practice with special chip by Electronic Frontier Foundation, 1998. Possibly much earlier by NSA and others.
+    \item Differential Cryptanalysis: $2^{47}$ chosen plaintexts, Biham and Shamir, 1991. Known earlier by IBM and NSA. DES is surprisingly resistant!
+    \item Linear Cryptanalysis: $2^{43}$ known plaintexts, Matsui, 1993. Probably \textbf{not} known by IBM and NSA!
+    \item Since the key space for DES is too small, one way to increase it is to use DES twice, so called "double DES".
+    $2DES_{k_1,k_2}(x) = DES_{k_2}(DES_{k_1}(x))$.
+    \item However, this is \textbf{not} more secure than normal DES! 
+    \item Meet-in-the-middle attack:
+    \begin{itemize}
+        \item [$\circ$] Get hold of a plaintext-ciphertext pair $(m, c)$.
+        \item [$\circ$] Compute $X = \{x \mid k_1 \in \mathcal{K}_{DES} \land x = E_{k_1}(m) \}$.
+        \item [$\circ$] For $k_2 \in \mathcal{K}_{DES}$ check if $E_{k_2}^{-1}(c) = E_{k_1}(m)$ for some $k_1$ using the table $X$. If so, then $(k_1, k_2)$ is a good candidate.
+        \item [$\circ$] Repeat with $(m', c')$, starting from the set of candidate keys to identify the correct key.
+    \end{itemize}
+    \item Tripple DES: $3DES_{k_1,k_2,k_3}(x) = DES_{k_3}(DES_{k_2}(DES_{k_1}(x)))$.
+    \item Seemingly 112 bit "effective" key size.
+    \item 3 times as slow as DES. DES is slow in software, and this is even worse. One of the motivation for AES. 
+    \item Triple DES is sill considered to be secure.
+\end{itemize}
+
+\subsection*{Modes of Operation}
+\begin{itemize}
+\item 5 modes of operation:
+\begin{itemize}
+    \item [$\circ$] Electronic codebook mode (ECB mode).
+    \item [$\circ$] Cipher feedback mode (CFB mode).
+    \item [$\circ$] Cipher block chaining mode (CBC mode).
+    \item [$\circ$] Output feedback mode (OFB mode).
+    \item [$\circ$] Counter mode (CTR mode).
+\end{itemize}
+\item \textbf{Electronic codebook mode} - encrypt each block independently: $c_i = E_k(m_i)$.
+\item Identical plaintext blocks give identical ciphertext blocks.
+\item \textbf{Cipher feedback mode} - xor plaintext block with previous ciphertext block \textbf{after} encryption:\\$c_0 =$ initialisation vector\\$c_i = m_i \oplus E_k(c_{i-1})$.
+\item Sequential encryption and parallel decryption.
+\item Self-synchronising and unidirectional.
+\item \textbf{Cipher block chaining mode} - xor plaintext block with previous ciphertext block \textbf{after} encryption:\\$c_0 =$ initialisation vector\\$c_i = E_k(c_{i-1} \oplus m_i)$.
+\item Sequential encryption and parallel decryption.
+\item Self-synchronising.
+\item \textbf{Output feedback mode} - generate stream, xor plaintexts with stream (emulate "one-time pad"):\\$s_0 =$ initialisation vector\\$s_i = E_k(s_{i-1})$\\$c_i = s_i \oplus m_i$.
+\item Sequential. 
+\item Synchronous.
+\item Allows batch processing.
+\item Malleable!
+\item \textbf{Counter mode} - generate stream, xor plaintexts with stream (emulate "one-time pad"):\\$s_0 =$ initialisation vector\\$s_i = E_k(s_{0} || i)$\\$c_i = s_i \oplus m_i$.
+\item Parallel.
+\item Synchronous.
+\item allows batch processing.
+\item Malleable!
+\end{itemize}
+
+\section*{Lecture 4 - Cryptanalysis of the Simple Permutation Network}
+
+\begin{itemize}
+    \item Find an expression of the following form with a high probability of occurrence. 
+    $$P_{i_1} \oplus \cdots \oplus P_{i_p} \oplus C_{j_1} \oplus \cdots \oplus C_{j_c} = K_{l_1, s_1} \oplus \cdots \oplus K_{l_k, s_k}$$
+    \item Each random plaintext / ciphertext pair gives an estimate of $$K_{l_1, s_1} \oplus \cdots \oplus K_{l_k, s_k}$$
+    \item Collect many pairs and make a better estimate based on the majority vote.
+    \item How do we come up with the desired expression?
+    \item How do we compute the required number of samples?
+\end{itemize}
+\subsection*{Bias}
+\begin{itemize}
+    \item The bias $\epsilon(X)$ of a binary random variable $X$ is defined by $$\epsilon(X) = Pr [X = 0] - \frac{1}{2}$$
+    $\approx 1 / \epsilon^2(X)$ samples are required to estimate $X$.
+\end{itemize}
+
+\subsection*{Linear Approximation of S-Box}
+\begin{itemize}
+    \item Let $X$ and $Y$ be the input and output of an $S$-box, i.e. {\boldmath$Y = S(X)$}.
+    \item We consider the bias of linear combinations of the form $$a \cdot X \oplus b \cdot Y = \Bigg(\bigoplus_{i}a_iX_i\Bigg) \oplus \Bigg(\bigoplus_{i}b_iY_i\Bigg)$$
+    \item Example: $X_2 \oplus X_3 = Y_1 \oplus Y_3 \oplus Y_4$. The expression holds in 12 out of the 16 cases. Hence, it has a bias of (12-8)/16 = 4/16 = 1/4.
+    \item Let $N_L(a, b)$ be the number of zero-outcomes of a $a \cdot X \oplus b \cdot Y$.
+    \item The bias is then $$\epsilon(a \cdot X \oplus b \cdot Y = \frac{N_L(a,b) - 8}{16},$$ since there are four bits in $X$, and $Y$ is determined by $X$.
+    \item This gives a linear approximation for one round.
+    \item How do we come up with a linear approximation for more rounds?
+\end{itemize}
+
+\subsection*{Piling-Up Lemma}
+
+\begin{itemize}
+    \item Let $X1, ..., X_t$ be independent binary random variables and let $\epsilon_i = \epsilon(X_i)$. Then $$\epsilon \Bigg(\bigoplus_{i}X_i\Bigg) = 2^{t-1} \prod_{i} \epsilon_i .$$ 
+    \item Proof: Case $t = 2$:
+    \begin{align*}
+        Pr[X_1 \oplus X_2 = 0] &= Pr[X_1 = 0 \land X_1 = 0) \lor (X_1 = 1 \land X_1 = 1)]\\
+        &= (\frac{1}{2} + \epsilon_1)(\frac{1}{2} + \epsilon_2)+(\frac{1}{2} - \epsilon_1)(\frac{1}{2} - \epsilon_2)\\
+        &=\frac{1}{2} + 2\epsilon_1 \epsilon_2.
+    \end{align*}
+    By induction $Pr[X_1 \oplus \cdots \oplus X_t = 0] = \frac{1}{2} + 2^{t-1}\prod_{i} \epsilon_i$
+    \item Four linear approximatoins with $|\epsilon_i| = 1/4$
+ 
+\end{itemize}
+
+\end{document}
