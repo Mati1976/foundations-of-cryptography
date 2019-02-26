@@ -479,4 +479,120 @@ Pr[M = m \mid C = c] &= \frac{Pr[M = m]Pr[C = c \mid M = m]}{Pr[C=c]}\\
 \item [$\circ$] Dangerous in practice to rely on no reuse of, e.g., file containing randomness!
 \end{itemize}
 \end{itemize}
+
+\section*{Lecture 5 - Hash Functions \& Random Oracles}
+
+\subsection*{Universal Hash Functions}
+
+\begin{itemize}
+\item An ensemble $f = \{f_\alpha\}$ of hash functions $f_\alpha : X \rightarrow Y$ is (strongly) 2-universal if for every $x, x' \in X$ and $y, y' \in Y$ with $x \neq x'$ and a random $\alpha$
+$$Pr[f_\alpha(x) = y \land f_\alpha(x') = y'] = \frac{1}{|Y|^2} .$$
+I.e., for any fixed $x' \neq x$, the outputs $f_\alpha(x)$ and $f_\alpha(x')$ are uniformly and independently distributed when $\alpha$ is chosen randomly.
+
+In particular $x$ and $x'$ are both mapped to the same value with probability $\frac{1}{|Y|}$.
+\item Example: The function $f: \mathbb{Z}_p \rightarrow \mathbb{Z}_p$ for prime $p$ defined by $$f(z) = az + b \mod p$$ is strongly 2-universal
+\item Proof: Let $x, x', y, y' \in \mathbb{Z}_p$ with $x \neq x'$. Then 
+$$
+\begin{pmatrix}
+x & 1 \\
+x' & 1
+\end{pmatrix}
+\begin{pmatrix}
+z_1 \\
+z_2
+\end{pmatrix}
+=
+\begin{pmatrix}
+y \\
+y'
+\end{pmatrix}
+$$
+has a unique solution. Random $(a,b)$ satisfies this solution with probability $\frac{1}{p^2}$.
+\item Universal hash functions are \textbf{not} one-way or collision resistant!
+\end{itemize}
+
+\subsection*{Hash Functions}
+\begin{itemize}
+\item A hash function maps arbitrary long bit strings into strings of fixed length.
+\item The output of a hash function should be "unpredictable"
+\item The following properties should be met by a hash function:
+\begin{itemize}
+\item [$\circ$] Finding a pre-image of an output should be hard.
+\item [$\circ$] Finding two inputs giving the same output should be hard.
+\item [$\circ$] The output of the function should be "random".
+\end{itemize}
+\item Let $f: \{0,1\}^* \rightarrow \{0,1\}$ be a polynomial time commutable function.
+\item We can derive an ensemble $\{f_n\}_{n \in \mathbb{N}}$, with $$f_n: \{0,1\}^n \rightarrow \{0,1\}^*$$ by setting $f_n(x) = f(x)$.
+\item Note that we may recover $f$ form the ensemble by $f(x) = f_{|x|}(x)$.
+\item When convenient we give definitions for a function, but it can be turned into a definition for an ensemble.
+\item Consider $F=\{f_n\}_{n \in \mathbb{N}}$, where $f_n$ is itself an ensemble $\{f_{n,\alpha_n}\}_{\alpha_n \in \{0,1\}^n}$, with $$f_{n,\alpha_n}:\{0,1\}^{l(n)} \rightarrow \{0,1\}^{l'(n)}$$ for some length polynomials $l(n)$ and $l'(n)$.
+\item Here $n$ is the security parameter and $\alpha_n$ is a "key" that is chosen randomly.
+\item We may also view $F$ as an ensemble $\{f_\alpha\}$, where $f_\alpha = \{f_{n,\alpha_n}\}_{n \in \mathbb{N}}$ and $\alpha = \{\alpha_n\}_{n \in \mathbb{N}}$.
+\item These conventions allow us to talk about what in everyday language is a "function" $f$ in several convenient ways.
+\item FROM NOW ON WE CAN FORGET THE ABOVE AND ASSUME EVERYTHING WORKS....
+\end{itemize}
+
+\subsection*{One-Wayness}
+\begin{itemize}
+\item Definition: A function $f: \{0,1\}^* \rightarrow \{0,1\}^*$ is said to be one-way if for every polynomial time algorithm $A$ and a random $x$ $$Pr[A(f(x)) = x' \land f(x') = f(x)] < \epsilon(n)$$ for a negligible function $\epsilon$.
+\item Normally $f$ is computable in polynomial time in its input size.
+\item Definition: A function $h: \{0,1\}^* \rightarrow \{0,1\}^*$ is said to be second pre-image resistant if for every polynomial time algorithm $A$ and a random $x$ $$Pr[A(x) = x' \land x' \neq x \land f(x') = f(x)] < \epsilon(n)$$ for a negligible function $\epsilon$.
+\item Note that $A$ is given not only the output of $f$, but also the input $x$, but it must find a second pre-image.
+\item Definition: Let $f = \{f_\alpha\}_\alpha$ be an ensemble of functions. the "function" $f$ is said to be collision resistant if for every polynomial time algorithm $A$ and randomly chosen $\alpha$ $$Pr[A(\alpha) = (x,x') \land x \neq x' \land f_\alpha(x') = f_\alpha(x)] < \epsilon(n)$$ for a negligible function $\epsilon$.
+\item An algorithm that gets a small "advice string" for each security parameter can easily hardcode a collision for a fixed function $f$, which explains the random index $\alpha$.
+\end{itemize}
+
+\subsection*{Relations for Compressing Hash Functions}
+\begin{itemize}
+\item If a function is not second pre-image resistant, then it is not collision-resistant.
+\begin{itemize}
+\item [$\circ$] Pick random $x$.
+\item [$\circ$] Request second pre-image $x' \neq x$ with $f(x') = f(x)$.
+\item [$\circ$] Output $x'$ and $x$.
+\end{itemize}
+\item If a function is not one-way, then it is not second pre-image resistant.
+\begin{itemize}
+\item [$\circ$] Given a random $x$, compute $y = f(x)$.
+\item [$\circ$] Request pre-image $x'$ of $y$.
+\item [$\circ$] Repeat until $x' \neq x$, and output $x'$.
+\end{itemize}
+\end{itemize}
+
+\subsection*{Random Oracles}
+
+\begin{itemize}
+\item A random oracle is simply a randomly chosen function with appropriate domain and range.
+\item A random oracle is the perfect hash function. Every input is mapped independently and uniformly in the range.
+\item Let us consider how a random oracle behaves with respect to our notions of security of hash functions.
+\end{itemize}
+
+\subsection*{Pre-Image of Random Oracle}
+
+\begin{itemize}
+\item We assume with little loss that an adversary always "knows" if it has found a pre-image, i.e., it queries the random oracle on its output. 
+\item Theorem: Let $H: X \rightarrow Y$ be a randomly chosen function and let $x \in X$ be randomly chosen. Then for every algorithm $A$ making $q$ oracle queries
+$$Pr[A^{H(\cdot)}(H(x)) = x' \land H(x) = H(x')] \leq 1 - \bigg(1 - \frac{1}{|Y|} \bigg)^q .$$
+\item Proof: Each query $x'$ satisfies $H(x') \neq H(x)$ independently with probability $1 = \frac{1}{|Y|}$.
+\end{itemize}
+
+\subsection*{Second Pre-Image of Random Oracle}
+
+\begin{itemize}
+\item We assume with loss that an adversary always "knows" if it has found a second pre-image, i.e., it quries the random oracle on the input and its output.
+\item Theorem: Let $H: X \rightarrow Y$ be a randomly chosen function and let $x \in X$ be randomly chosen. Then for every such algorithm $A$ making $q$ oracle queries
+$$Pr[A^{H(\cdot)}(x) = x' \land x \neq x' \land H(x) = H(x')] \leq 1 - \bigg(1 - \frac{1}{|Y|} \bigg)^{q-1} .$$
+\item Proof: Same as pre-image case, except we must waste one query on the input value to get the target in $Y$.
+\end{itemize}
+
+\subsubsection*{Collision Resistance of Random Oracles}
+
+\begin{itemize}
+\item We assume with little loss that and adversary always "knows" if it has found a collision, i.e. it queries the random oracle on its outputs.
+\item Theorem: Let $H: X \rightarrow Y$ be a randomly chosen function and let $x \in X$ be randomly chosen. Then for every such algorithm $A$ making $q$ oracle queries
+$$Pr[A^{H(\cdot)} = (x, x') \land x \neq x' \land H(x) = H(x')] \leq 1 - \prod_{i=1}^{q-1} \bigg(1 - \frac{i}{|Y|} \bigg)$$
+
+$$Pr[A^{H(\cdot)} = (x, x') \land x \neq x' \land H(x) = H(x')] \leq \frac{q(q-1)}{2|Y|} .$$
+
+\item Proof: $1 - \frac{i-1}{|Y|}$ bounds the probability that the $i\ts{th}$ query does not give a collision for any of the $i-1$ previous queries, conditioned on no previous collisions. 
+\end{itemize}
 \end{document}
