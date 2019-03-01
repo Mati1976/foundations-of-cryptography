@@ -1,4 +1,4 @@
-# Foundations-of-Cryptography
+# Foundations of Cryptography
 
 * Clone repository:
   * `git clone git@github.com:GaPhil/Foundations-of-Cryptography.git` (with SSH)
