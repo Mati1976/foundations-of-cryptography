@@ -595,4 +595,86 @@ $$Pr[A^{H(\cdot)} = (x, x') \land x \neq x' \land H(x) = H(x')] \leq \frac{q(q-1
 
 \item Proof: $1 - \frac{i-1}{|Y|}$ bounds the probability that the $i\ts{th}$ query does not give a collision for any of the $i-1$ previous queries, conditioned on no previous collisions. 
 \end{itemize}
+
+\section*{Lecture 6 - Hash Functions and MACs}
+
+\subsection*{Iterated Hash Functions (Merkle-Damg\aa rd)}
+
+\begin{itemize}
+\item Suppose that we are given a collision resistant hash function $$f: \{0,1\}^{n+t} \rightarrow \{0,1\}^n.$$
+\item How can we construct a collision resistant hash function $$f: \{0,1\}^* \rightarrow \{0,1\}^n$$ mapping any length inputs?
+\item Construction:
+\begin{itemize}
+\item [$\circ$] Let $x=(x_1, ..., x_k)$ with $|x_i| = t$ and $0<|x_k| \leq t$.
+\item [$\circ$] Let $x_{k+1}$ be the total number of bits in $x$.
+\item [$\circ$] Pad $x_k$ with zeros until it has length $t$.
+\item [$\circ$] $y_0 = 0^n, y_i= f(y_{i-1}, x_i)$ for $i = 1,..., k+1$.
+\item [$\circ$] Output $y_{k+1}$
+\end{itemize}
+\item Here the total number of bits is bounded by $2^t-1$, but this can be relaxed.
+\item Suppose $A$ finds collisions in Merkle-Damg\aa rd.
+\begin{itemize}
+\item [$\circ$] If the number of bits differ in a collision, then we can derive a collision from the last invocation of $f$.
+\item [$\circ$] If not, then we move backwards until we get a collision. Since both inputs have the same length, we are guaranteed to find a collision.
+\end{itemize}
+\end{itemize}
+
+\subsection*{Standardised Hash Functions}
+
+\begin{itemize}
+\item Despite that theory says it is impossible, in practice people simply live with \textbf{fixed} hash functions and use them as if they are randomly chosen functions. 
+\item \textbf{SHA}
+\begin{itemize}
+\item [$\circ$] Secure Hash Algorithm (SHA-0,1, and the SHA-2 family) are hash functions standardised by NIST to be used in, e.g., signature schemes and random number generation. 
+\item [$\circ$] SHA-0 was weak and withdraws by NIST. SHA-1 was withdrawn 2010. The SHA-2 family is based on similar ideas but seems safe so far.
+\item $[\circ$] All are iterated hash functions, starting from a basic compression function.
+\end{itemize}
+\item \textbf{SHA-3}
+\begin{itemize}
+\item [$\circ$] NIST ran an open competition for the next hash function, named SHA-3. Several groups of famous researchers submitted proposals. 
+\item [$\circ$] Call for SHA-3 explicitly asked for "different" hash functions. 
+\item [$\circ$] The competition ended on October 2, 2012, and the hash function Keccak was selected as the winner.
+\item [$\circ$] It was constructed by Guido Bertoni, Joan Daemen, Micha\"el Peeters, and Gilles Van Assche.
+\end{itemize}
+\end{itemize}
+
+\subsection*{Message Authentication Codes (MACs)}
+
+\begin{itemize}
+\item Message Authentication Codes (MACs) are used to ensure integrity and authentication of messages.
+\item Scenario:
+\begin{itemize}
+\item [$\circ$] Alice and Bob share a common key $k$.
+\item [$\circ$] Alice computes an authentication tag $\alpha = MAC_k(m)$ and sends $(m,\alpha)$ to Bob.
+\item [$\circ$] Bob receives $(m',\alpha')$ form Alice, but before accepting $m'$ as coming from Alice, Bob checks that $MAC_k(m')=\alpha'$.
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{Security of a MAC}
+\begin{itemize}
+\item A message authentication code MAC is secure if for a random key $k$ and every polynomial time algorithm $A$,
+$$Pr[A^{MAC_k(\cdot)}=(m,\alpha) \land MAC_k(m) = \alpha \land \forall i : m \neq m_i]$$
+is negligible, where $m_i$ is the $i$\ts{th} query to the oracle $MAC_k(\cdot)$.
+\end{itemize}
+
+\subsubsection*{Random Oracle As MAC}
+
+\begin{itemize}
+\item Suppose that $H: \{0,1\}^* \rightarrow \{0,1\}^n$ is a random oracle.
+\item Then we can construct a MAC as $MAC_k(m) = H(k,m)$.
+\item Could we plug in an iterated hash function in place of the random oracle?
+\end{itemize}
+
+\subsection*{HMAC}
+
+\begin{itemize}
+\item Let $H: \{0,1\}^* \rightarrow \{0,1\}^n$ be a "cryptographic hash function", e.g. SHA-256.
+\item $HMAC_{k_1, k_2}(x) = H\big(k_2||H(k_1||x)\big)$
+\item This is provably secure under the assumption that
+\begin{itemize}
+\item [$\circ$] $H(k_1||\cdot)$ is unknown-key collision resistant, and
+\item [$\circ$] $H(k_2||\cdot)$ is a secure MAC for fixed-size messages.
+\end{itemize}
+\end{itemize}
+
 \end{document}
