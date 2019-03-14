@@ -6,4 +6,5 @@
   
 * Compile to pdf
   * `cd Foundations-of-Cryptography/`
-  * `pdflatex -jobname=crypto main.tex` (run **twice!**)
+  * `chmod +x make`
+  * `./make`
