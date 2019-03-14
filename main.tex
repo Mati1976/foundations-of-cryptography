@@ -21,6 +21,7 @@
 \usepackage{amssymb}
 \newcommand{\inv}{^{\raisebox{.2ex}{$\scriptscriptstyle-1$}}}
 \newcommand{\ts}{\textsuperscript}
+\usepackage{listings}
 
 % Remove hyphenation
 \usepackage[british]{babel}
@@ -668,13 +669,147 @@ is negligible, where $m_i$ is the $i$\ts{th} query to the oracle $MAC_k(\cdot)$.
 \subsection*{HMAC}
 
 \begin{itemize}
-\item Let $H: \{0,1\}^* \rightarrow \{0,1\}^n$ be a "cryptographic hash function", e.g. SHA-256.
+\item Let $H: \{0,1\}^* \rightarrow \{0,1\}^n$ be a "cryptographic hashfunction", e.g. SHA-256.
 \item $HMAC_{k_1, k_2}(x) = H\big(k_2||H(k_1||x)\big)$
 \item This is provably secure under the assumption that
 \begin{itemize}
 \item [$\circ$] $H(k_1||\cdot)$ is unknown-key collision resistant, and
 \item [$\circ$] $H(k_2||\cdot)$ is a secure MAC for fixed-size messages.
 \end{itemize}
+\end{itemize}
+
+\section*{MACs and Information Theory}
+
+\subsection*{MACs}
+
+\subsubsection*{CBC-MAC}
+
+\begin{itemize}
+\item Let $E$ be a secure block-cipher, and $x = (x_1,...,x_t)$ an input. The MAC-key is simply the block-cipher key.
+\begin{itemize}
+\item [$\circ$] $y_0 = 000...0$
+\item [$\circ$] For $i=1,...,t$, $y_i = E_k(y_{i-1}\oplus x_i)$
+\item [$\circ$] Return $y_t$.
+\end{itemize}
+\item Is this secure?
+\end{itemize}
+
+\subsubsection*{Universal Hashfunction As MAC}
+\begin{itemize}
+\item Theorem: A $t$-universal hashfunction $f_\alpha$ for a randomly chosen secret $\alpha$ is an \textbf{unconditionally secure} MAC, provided that the number of queries is smaller than $t$.
+\end{itemize}
+
+\subsection*{Information Theory}
+
+\begin{itemize}
+\item Information theory is a mathematical theory of communication.
+\item Typical questions studied are how to compress, transmit, and store information.
+\item Information theory is also useful to argue about some cryptographic schemes and protocols.
+\item Memory Source Over Finite Alphabet: A source produces symbols from an alphabet $\Sigma = \{a_1,...,a_n\}$. Each generated symbol is independently distributed.
+\item Binary Channel: A binary channel can (only) send bits. \item Coder/Decoder: Our goal is to come up with a scheme to:
+\begin{itemize}
+\item [$\circ$] Convert a symbol $a$ from the alphabet $\Sigma$ into a sequence $(b_1,...,b_l)$ of bits, 
+\item [$\circ$] send the bits over the channel, and
+\item [$\circ$] decode the sequence into $a$ again at the receiving end.
+\end{itemize}
+\item Optimisation goal: We want to minimise the \textbf{expected} number of bits/symbols we send over the binary channel, i.e., if $X$ is a random variable over $\Sigma$ and $l(x)$ is the length of the codeword of $x$ then we wish to minimise.
+$$E[l(X)] = \sum_{x\in \Sigma}P_X(x)l(x).$$
+\end{itemize}
+
+\subsubsection*{Examples}
+\begin{itemize}
+\item $X$ takes values in $\sigma = \{a, b, c, d\}$ with uniform distribution. How would you encode this?
+\item $X$ takes values in $\sigma = \{a,b,c\}$, with $P_X(a) = \frac{1}{2}$, $P_X(b) = \frac{1}{4}$, and $P_X(c) = \frac{1}{4}$. How would you encode this?
+\item It seems we need $l(x) = \log |\Sigma|$. This gives the Hartley measure.
+\item It seems we need $l(x) = \log\frac{1}{P_X(x)}$ bits to encode $x$.
+\item Let us turn this expression into a definition.
+\item Let $X$ be a random variable taking values in $\mathcal{X}$. Then the entropy of $X$ is $$H(X) = - \sum_{x\in\Sigma}P_X(x)\log P_X(x).$$
+\item Examples and intuition are nice, but what we need is a theorem that states that this is \textbf{exactly} the right length of an optimal code.
+\end{itemize}
+
+\subsubsection*{Jensen's Inequality}
+
+\begin{itemize}
+\item Definition: A function $f: \mathcal{X} \rightarrow (a,b)$ is \textbf{concave} if $$\lambda \cdot f(x) + (1-\lambda)f(y) \leq f(\lambda \cdot x + (1- \lambda)y),$$ for every $x, y \in (a,b)$ and $0\leq\lambda\leq 1$.
+\item Theorem: Suppose $f$ is continuous and strictly concave on $(a,b)$, and $X$ is a discrete random variable. Then $$E[f(X)] \leq f(E[X]),$$ with equality if and only if $X$ is constant.
+\item Proof idea: Consider two points + induction over number of points.
+\end{itemize}
+
+\subsubsection*{Kraft's Inequality}
+
+\begin{itemize}
+\item Theorem: There exists a prefix-free code $E$ with codeword lengths $l_x$, for $x\in \Sigma$ if and only if $$\sum_{x\in\Sigma}2^{-l_x}\leq 1.$$
+\item Proof Sketch: Given a prefix-fee code, we consider the corresponding binary tree with codewords at the leaves. We may "fold" it by replacing two siblings leaves $E(x)$ and $E(y)$ by $(xy)$ with length $l_x-1$. Repeat.
+\item Given lengths $l_{X_1} \leq l_{X_1} \leq ... \leq l_{X_n}$ we start with the complete binary tree of depth $l_{X_n}$ and prune it.
+\end{itemize}
+
+\subsubsection*{Binary Source Coding Theorem}
+\begin{itemize}
+\item Theorem: Let $E$ be an optimal code and let $l(x)$ be the length of the codeword of $x$. Then $$H(X)\leq E[l(X)] < H(X) + 1.$$
+\item Proof of Upper Bound: Define $l_x = \lceil-\log P_X(x)\rceil$. Then we have
+$$\sum_{x\in\Sigma}2^{-l_x} \leq \sum_{x\in\Sigma}2^{\log P_X(x)}=\sum_{x\in\Sigma}P_X(x) = 1$$
+Kraft's inequality implies that there is a code with codeword lengths $l_x$. Then note that
+$\sum_{x\in\Sigma}P_X(x)\lceil-\log P_X(x)\rceil < H(X) + 1$.
+\item Proof of Lower Bound:
+\begin{align*}
+E[l(X)] &= \sum_x P_X(x)l_x\\
+&=-\sum_x P_X(x)\log 2^{-l_x}\\
+&\geq -\sum_x P_X(x)\log P_X(x)\\
+&= H(X)
+\end{align*}
+\end{itemize}
+
+\subsubsection*{Huffman's Code}
+
+\begin{algorithmic}[1]
+\State \textbf{Input:} $\{(a_1,p_1),...,(a_n,p_n)\}$.
+\State \textbf{Output:} $0/1$-labeled rooted tree.
+\Procedure{Huffman}{$\{(a_1,p_1),...,(a_n,p_n)\}$}
+\State $S\gets \{(a_1,p_1,a_1), ...,(a_n,p_n,a_n)\}$
+\While{$|S| \geq 2$}
+\State Find $(b_i,p_i,t_i),(b_j,p_j,t_j) \in S$ with minimal $p_i$ and $p_j$.
+\State $S\gets S \setminus \{(b_i,p_i,t_i),(b_j,p_j,t_j)\}$
+\State $S\gets S \cup \{\big(b_i || b_j, p_i + p_j, \Call{Node}{t_i,t_j}\big)\}$
+\EndWhile
+\State \Return $S$
+\EndProcedure
+\end{algorithmic}
+
+\begin{itemize}
+\item Theorem: Huffman's code is optimal.
+\item Proof idea: There exists an optimal code where the tow least likely symbols are neighbours.
+\end{itemize}
+
+\subsubsection*{Entropy}
+
+\begin{itemize}
+\item Let us turn this expression into a definition.
+\item Definition: Let $X$ be a random variable taking values in $\mathcal{X}$. Then the \textbf{entropy} of $X$ is $$H(X) = - \sum_{x\in\mathcal{X}} P_X(x)\log P_X(x).$$
+\end{itemize}
+
+\subsubsection*{Conditional Entropy}
+
+\begin{itemize}
+\item Definition: Let $(X,Y)$ be a random variable taking values in $\mathcal{X} \times \mathcal{Y}$. We define \textbf{conditional entropy}
+\begin{align*}
+H(X|y) &= - \sum_x P_{X|Y}(x|y)\log P_{X|Y}(x|y) \text{\quad and}\\
+H(X|Y) &= \sum_y P_Y(y)H(X|y)
+\end{align*}
+\item Note that $H(X|y)$ is simply the ordinary entropy function of a random variable with probability function $P_{X|Y}(\cdot|y)$.
+\end{itemize}
+
+\subsubsection*{Properties of Entropy}
+
+\begin{itemize}
+\item Let $X$ be a random variable taking values in $\mathcal{X}$.
+\item Upper Bound: $H(X) = E[-\log P_X(X)] \leq \log |\mathcal{X}|$.
+\item Chain Rule and Conditioning:
+\begin{align*}
+H(X,Y) &= -\sum_{x,y}P_{X,Y}(x,y) \log P_{X,Y}(x,y)\\
+&= - \sum_{x,y}P_{X,Y}(x,y)\big(\log P_Y(y) + \log P_{X|Y} (x|y)\big)\\
+&= - \sum_y P_Y(y)\log P_Y(y) - \sum_{x,y} P_{X,Y}(x,y) \log P_{X|Y}(x|y)\\
+&= H(Y) + H(X|Y) \leq H(Y) + H(X)
+\end{align*}
 \end{itemize}
 
 \end{document}
