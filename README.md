@@ -1,8 +1,8 @@
 # Foundations of Cryptography
 
 * Clone repository:
-  * `git clone git@github.com:GaPhil/Foundations-of-Cryptography.git` (with SSH)
-  * `git clone https://github.com/GaPhil/Foundations-of-Cryptography.git` (with HTTPS)
+  * `git clone git@github.com:GaPhil/foundations-of-cryptography.git` (with SSH)
+  * `git clone https://github.com/GaPhil/foundations-of-cryptography.git` (with HTTPS)
   
 * Compile to pdf
   * `cd foundations-of-cryptography/`
