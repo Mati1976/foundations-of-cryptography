@@ -17,7 +17,7 @@
 \usepackage{tikz}
 \usetikzlibrary{shapes}
 \usepackage{algorithmicx}
-\usepackage{algpseudocode}
+\usepackage[noend]{algpseudocode}
 \usepackage{amssymb}
 \newcommand{\inv}{^{\raisebox{.2ex}{$\scriptscriptstyle-1$}}}
 \newcommand{\ts}{\textsuperscript}
@@ -628,7 +628,7 @@ $$Pr[A^{H(\cdot)} = (x, x') \land x \neq x' \land H(x) = H(x')] \leq \frac{q(q-1
 \begin{itemize}
 \item [$\circ$] Secure Hash Algorithm (SHA-0,1, and the SHA-2 family) are hash functions standardised by NIST to be used in, e.g., signature schemes and random number generation. 
 \item [$\circ$] SHA-0 was weak and withdraws by NIST. SHA-1 was withdrawn 2010. The SHA-2 family is based on similar ideas but seems safe so far.
-\item $[\circ$] All are iterated hash functions, starting from a basic compression function.
+\item [$\circ$] All are iterated hash functions, starting from a basic compression function.
 \end{itemize}
 \item \textbf{SHA-3}
 \begin{itemize}
@@ -811,5 +811,66 @@ H(X,Y) &= -\sum_{x,y}P_{X,Y}(x,y) \log P_{X,Y}(x,y)\\
 &= H(Y) + H(X|Y) \leq H(Y) + H(X)
 \end{align*}
 \end{itemize}
+
+\section*{Lecture 8 - Elementary Number Theory}
+
+\subsection*{Greatest Common Divisors}
+
+\begin{itemize}
+\item Definition: A common divisor of two integers $m$ and $n$ is an integer $d$ such that $d \mid m$ and $d \mid n$.
+\item Definition: A greatest common divisor (GCD) of two integers $m$ and $n$ is a common divisor $d$ such that every common divisor $d'$ divides $d$.
+\item The GCD is the positive GCD.
+\item We denote the GCD of $m$ and $n$ by gcd($m,n$).
+\item Properties:
+\begin{itemize}
+\item [$\circ$] gcd($m,n$) = gcd($n,m$)
+\item [$\circ$] gcd($m,n$) = gcd($m-n,n$) if $m \geq n$
+\item [$\circ$] gcd($m,n$) = gcd($m \mod n,n$)
+\item [$\circ$] gcd($m,n$) = 2 gcd($m/2,n/2$) if $m$ and $n$ are even.
+\item [$\circ$] gcd($m,n$) = gcd($m/2,n$) if $m$ is even and $n$ is odd.
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{Euclidean Algorithm}
+
+\begin{algorithmic}[1]
+\Procedure{Euclidean}{$m,n$}
+\While{$n \neq 0$}
+\State $t \gets n$
+\State $n \gets m \mod n$
+\State $m \gets t$
+\EndWhile
+\State \Return $m$
+\EndProcedure
+\end{algorithmic}
+
+\subsubsection*{Steins Algorithm (Binary GCD Algorithm)}
+
+\begin{algorithmic}[1]
+\Procedure{Stein}{$m,n$}
+\If{$m = 0$ or $n =0$} \Return $0$ \EndIf
+\State $s \gets 0$
+\While{$m$ and $n$ are even}
+\State $m \gets m/2$
+\State $n \gets n/2$
+\State $s \gets s+1$
+\EndWhile
+\While{$n$ is even}
+\State $n \gets n/2$
+\EndWhile
+\While{$m \neq 0$}
+\While{$m$ is even}
+\State $m \gets m/2$
+\EndWhile
+\If{$m < n$}
+\State \Call{Swap}{m,n}
+\EndIf
+\State $m \gets m-n$
+\State $m \gets m/2$
+\EndWhile
+\State \Return $2^s n$
+\EndProcedure
+\end{algorithmic}
+
 
 \end{document}
