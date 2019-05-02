@@ -872,5 +872,127 @@ H(X,Y) &= -\sum_{x,y}P_{X,Y}(x,y) \log P_{X,Y}(x,y)\\
 \EndProcedure
 \end{algorithmic}
 
+\subsubsection*{Bezout's Lemma}
+
+\begin{itemize}
+\item Lemma: There exists integers $a$ and $b$ such that $$\text{gcd}(m,n) = am + bn.$$
+\item Proof: Let $d > \text{gcd}(m,n)$ be the smallest positive integer of the form $d = am + bn.$ Write $m = cd + r$ with $0<r<d$. Then 
+\begin{align*}
+d > r &= m - cd\\
+&= m-c(am + bn)\\
+&= (1-ca)m + (-cb)n,
+\end{align*}
+a contradiction! Thus, $r = 0$ and $d \mid m$. Similary, $d \mid n$.
+\end{itemize}
+
+
+\subsubsection*{Extended Euclidean Algorithm (Recursive Version)}
+
+\begin{algorithmic}[1]
+\Procedure{ExtendedEuclidean}{$m,n$}
+\If{$m \mod n = 0$}
+\State \Return $(0,1)$
+\Else
+\State $(x,y) \gets \Call{ExtendedEuclidean}{n, m \mod n}$
+\State \Return $(y, x - y \lfloor m / n \rfloor)$
+\EndIf
+\EndProcedure
+\end{algorithmic}
+
+\begin{itemize}
+\item If $(x,y) \gets \Call{ExtendedEuclidean}{m,n}$ then  $\text{gcd}(m,n) = xm + yn$.
+\end{itemize}
+
+\subsection*{Coprimality (Relative Primality)}
+
+\begin{itemize}
+\item Definition: Two integers $m$ and $n$ are coprime if their greatest common divisor is 1.
+\item Fact: If $a$ and $n$ are coprime, then there exists a $b$ such that $ab = 1 \mod n$.
+\end{itemize}
+
+\subsection*{Chinese Remainder Theorem (CRT)}
+
+\begin{itemize}
+\item Theorem: (Sun Tzu 400 AC) Let $n_1,...,n_k$ be positive pairwise coprime integers and let $a_1,...,a_k$ be integers. Then the equation system
+\begin{align*}
+x &= a_1 \mod n_1\\
+x &= a_2 \mod n_2\\
+x &= a_3 \mod n_3\\
+&\vdotswithin{=} \\
+x &= a_k \mod n_k
+\end{align*}
+has a unique solution in $\{0,...,\prod_{i}n_i-1\}$.
+\end{itemize}
+
+\subsection*{Constructive Proof of CRT}
+
+\begin{itemize}
+\item Set $N = n_1 \cdot n_2 \cdot ... \cdot n_k$.
+\item Find $r_i$ and $s_i$ such that $r_i n_i + s_i \frac{N}{n_i} = 1$ (Bezout).
+\item Note that $$s_i\frac{N}{n_i} = 1 - r_i n_i = 
+\begin{cases}
+1 \mod n_i\\
+0 \mod n_j \text{ if} j \neq i\\
+\end{cases}$$
+\item The solution to the equation system becomes:
+$$x = \sum_{i=1}^{k}\bigg(s_i\frac{N}{n_i}\bigg) \cdot a_i$$
+\end{itemize}
+
+\subsection*{The Multiplicative Group}
+
+\begin{itemize}
+\item The set $\mathbb{Z}_n^* = \{0 \leq a < n : \text{gcd}(a,n) =1 \}$ forms a group, since:
+\begin{itemize}
+\item [$\circ$] Closure: It is closed under multiplication modulo $n$.
+\item [$\circ$] Associativity: For $x,y,z \in \mathbb{Z}_n^*:$ $$(xy)z = x(yz) \mod n.$$
+\item [$\circ$] Identity: For every $x \in \mathbb{Z}_n^*:$ $$1 \cdot x = x \cdot 1 = x.$$
+\item [$\circ$] Inverse: For every $a \in \mathbb{Z}_n^*$ there exists $b \in \mathbb{Z}_n^*$ such that: $$ab = 1 \mod n.$$
+\end{itemize}
+\end{itemize}
+
+\subsection*{Lagrange's Theorem}
+
+\begin{itemize}
+\item Theorem: If $H$ is a subgroup of a finite group $G$, then $|H|$ divides $|G|$.
+\item Proof: Define $aH = \{ah : h \in H\}$. This gives an equivalence relation $x \approx y \iff x = yh \land h \in H$, and a partition of $G$.
+\item The map $\phi_{a,b}: aH \rightarrow bH$, defined by $\phi_{a,b}(x) = ba^{-1}x$ is a bijection, so $|aH| = |bH|$ for $a,b \in G$.
+\end{itemize}
+
+\subsection*{Euler's Phi-Function (Totient Function)}
+
+\begin{itemize}
+\item Definition: Euler's Phi-function $\phi(n)$ counts the number of integers $0<a<n$ relatively prime to $n$.
+\begin{itemize}
+\item [$\circ$] Clearly: $\phi(p) = p-1$ when $p$ is prime.
+\item [$\circ$] Similarly: $\phi(p^k) = p^k - p^{k-1}$ when $p$ is prime and $k>1$.
+\item [$\circ$] In general $\phi\Big(\prod_i^{k_i}\Big) = \prod_i\Big(p_i^k - p_i^{k-1}\Big)$.
+\end{itemize}
+\item How does this follow from CRT?
+\begin{itemize}
+\item [$\circ$] $\mathbb{Z}_n \simeq \prod_i \mathbb{Z}_{p_i^{k_i}}$ (CRT is a bijection)
+\item [$\circ$] If $a \in \mathbb{Z}_n^*$, then $a \mod p_i^{k_i} \in \mathbb{Z}_{p_i^{k_i}}$ (aligns bijection on subsets)
+\end{itemize}
+\end{itemize}
+
+\subsection*{Fermat's and Euler's Theorems}
+
+\begin{itemize}
+\item Theorem: (Fermat) If $b \in \mathbb{Z}_p^*$ and $p$ is prime, then $b^{p-1} = 1 \mod p$.
+\item Theorem: (Euler) If $b \in \mathbb{Z}_n^*$, then $b^{\phi(n)} = 1 \mod n.$
+\item Proof: Note that $|\mathbb{Z}_n^*| = \phi(n)$. $b$ generates a subgroup $\langle b\rangle$ of $\mathbb{Z}_n^*$, so $|\langle b\rangle|$ divides $\phi(n)$ by Lagrange's theorem and $b^{|\langle b\rangle|} = 1 \mod n$.
+\end{itemize}
+
+\subsection*{Multiplicative Group of a Prime Order Field}
+
+\begin{itemize}
+\item Definition: A group $G$ is called cyclic if there exists an element $g$ such that each element in $G$ is of the form $g^x$ for some integer $x$.
+\item Theorem: If $p$ is prime, then $\mathbb{Z}_p^*$ is cyclic.
+\item Every group of pime order is cyclic. Why?\\Keep in mind the difference between:
+\begin{itemize}
+\item [$\circ$] $\mathbb{Z}_p$ with \textit{prime order} as an \textit{additive group},
+\item [$\circ$] $\mathbb{Z}_p^*$ with \textit{non-prime order} as a \textit{multiplicative group}.
+\item [$\circ$] Group $G_p$ of \textit{prime order}.
+\end{itemize}
+\end{itemize}
 
 \end{document}
