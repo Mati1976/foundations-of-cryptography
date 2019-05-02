@@ -18,10 +18,13 @@
 \usetikzlibrary{shapes}
 \usepackage{algorithmicx}
 \usepackage[noend]{algpseudocode}
+\renewcommand\algorithmicdo{}
+\renewcommand\algorithmicthen{}
 \usepackage{amssymb}
 \newcommand{\inv}{^{\raisebox{.2ex}{$\scriptscriptstyle-1$}}}
 \newcommand{\ts}{\textsuperscript}
 \usepackage{listings}
+\usepackage[full]{complexity}
 
 % Remove hyphenation
 \usepackage[british]{babel}
@@ -931,8 +934,8 @@ has a unique solution in $\{0,...,\prod_{i}n_i-1\}$.
 \item Find $r_i$ and $s_i$ such that $r_i n_i + s_i \frac{N}{n_i} = 1$ (Bezout).
 \item Note that $$s_i\frac{N}{n_i} = 1 - r_i n_i = 
 \begin{cases}
-1 \mod n_i\\
-0 \mod n_j \text{ if} j \neq i\\
+1 \mod n_i \\
+0 \mod n_j & \text{if $j \neq i$}
 \end{cases}$$
 \item The solution to the equation system becomes:
 $$x = \sum_{i=1}^{k}\bigg(s_i\frac{N}{n_i}\bigg) \cdot a_i$$
@@ -993,6 +996,242 @@ $$x = \sum_{i=1}^{k}\bigg(s_i\frac{N}{n_i}\bigg) \cdot a_i$$
 \item [$\circ$] $\mathbb{Z}_p^*$ with \textit{non-prime order} as a \textit{multiplicative group}.
 \item [$\circ$] Group $G_p$ of \textit{prime order}.
 \end{itemize}
+\end{itemize}
+
+\section*{Lecture 9 - Public-Key Cryptography}
+
+Public-key cryptography was discovered:
+
+\begin{itemize}
+\item By Ellis, Cocks, and Williamson at the Government Communications Headquareters (GCHQ) in the UK in the early 1970s (not public until 1997).
+\item Independently by Merkle in 1974 (Merkle's puzzles).
+\item Independently in its discrete-logarithm based for by Diffie and Hellman in 1977, and instantiated in 1978 (key-exchagne).
+\item Independently in its factoring-based form by Rivest, Shamir and Adlemand in 1977.
+\end{itemize}
+
+\begin{itemize}
+\item Alice encrypts a message $m$ using Bob's public key $pk$ and encryption algorithm $E$ such that $c = E_{pk}(m)$. Bob decrypts the ciphertext $c$ using his secret key $sk$ and decryption algorithm  $D$ such that $m = E_{sk}(c)$.
+\item Definition: Mathematically, a public-key cryptosystem can be defined as a tuple $({\mathcal Gen}, E, D)$ where:
+
+\begin{itemize}
+\item [$\circ$] ${\mathcal Gen}$ is a probabilistic key generation algorithm that outputs key pairs $(pk,sk)$,
+\item [$\circ$] $E$ is a (possibly probabilistic) encryption algorithm that given a public key $pk$ and a message $m$ in the plaintext space ${\mathcal M}_{pk}$ outputs a ciphertxt $c$, and
+\item [$\circ$] $D$ is a decryption algorithm that given a secret key $sk$ and a ciphertext $c$ outputs a plaintext $m$, 
+\end{itemize}
+such that $D_{sk}(E_{pk}(m)) = m$ for every $(pk,sk)$ and $m \in \mathcal {M}_{pk}$.
+\end{itemize}
+
+\subsection*{RSA}
+
+\begin{itemize}
+\item Key Generation:
+\begin{itemize}
+\item [$\circ$] choose $n/2$-bit primes $p$ and $q$ randomly and define $N = pq$.
+\item [$\circ$] Choose $e$ in $\mathbb{Z}_{\phi(N)}^*$ and compute $d = e^{-1}\mod \phi(N)$.
+\item [$\circ$] Output the key pair $((N,e), (p,q,d))$, where $(N,e)$ is the public key and $(p,q,d)$ is the secret key.
+\end{itemize}
+\item Encryption: Encrypt a plaintext $m \in \mathbb{Z}_N^*$ by computing $$c = m^e \mod N.$$
+\item Decryption: Decrypt a ciphertext $c$ by computing $$m = c^d \mod N.$$
+\end{itemize}
+
+\subsubsection*{Why does it work?}
+
+\begin{align*}
+(m^e \mod N)^d \mod N &= m^{ed} \mod N \\
+&= m^{1+t \phi(N)} \mod N \\
+&= m^1 \cdot \Big(m^{\phi(N)}\Big)^t \mod N \\
+&= m \cdot 1^t \mod N \\
+&= m \mod N
+\end{align*}
+
+\subsubsection*{Implementing RSA}
+
+\begin{itemize}
+\item Modular arithmetic
+\item Greatest common divisor
+\item Primality test
+\end{itemize}
+
+\subsubsection*{Modular Arithmetic}
+
+\begin{itemize}
+\item Basic operations on $\mathcal{O}(n)$-bit integers using "text book" implementations.
+\begin{tabular}{l c}
+Operation & Running time \\\hline
+Addition & $\mathcal{O}(n)$ \\
+Subtraction & $\mathcal{O}(n)$ \\
+Multiplication & $\mathcal{O}(n^2)$ \\
+Modular reduction & $\mathcal{O}(n^2)$ \\
+Greatest common divisor & $\mathcal{O}(n^2)$
+\end{tabular}
+\item Optimal algorithms for multiplication and modular reduction are much faster.
+\item What about modular exponentiation?
+\end{itemize}
+
+\subsubsection*{Square-and-Multiply}
+
+\begin{algorithmic}[1]
+\Procedure{SquareAndMultiply}{$x,e,N$}
+\State $z \gets 1$
+\State $i$ = index of most signifiant one
+\While{$i\geq 0$}
+\State $z \gets z \cdot z \mod N$
+\If{$e_i = 1$}
+\State $z \gets z \cdot x \mod N$
+\EndIf
+\State $i \gets i - 1$
+\EndWhile
+\State \Return $z$
+\EndProcedure
+\end{algorithmic}
+
+\begin{itemize}
+\item Although basically the same, the most efficient algorithms for exponentiation are faster.
+\item Computing $g^{x_1},...,g^{x_k}$ can be done much faster!
+\item Computing $\prod_{i \in [k]} g^{x_i}$ can be done much faster!
+\item Computing $g_1^x,...,g_k^x$ can be done somewhat faster!
+\item What about side-channel attacks?
+\end{itemize}
+
+\subsubsection*{Prime Number Theorem}
+
+\begin{itemize}
+\item The primes are relatively dense.
+\item Theorem: Let $\pi(m)$ denote the number of primes $0<p\leq m$. Then 
+$$\lim_{m \rightarrow \infty} \frac{\pi(m)}{\frac{m}{\ln m}} = 1.$$
+\item To generate a random prime, we repeatedly pick a random integer $m$ and check if it is prime. It should be prime with probability $1/\ln m$ in a sufficiently large interval.
+\end{itemize}
+
+\subsubsection*{Legendre Symbol}
+
+\begin{itemize}
+\item Definition: Given an odd integer $b \geq 3$, an integer $a$ is called a quadratic residue modulo $b$ if there existst and integer $x$ such that $a = x^2 \mod b$.
+\item Definition: The Legendre Sybol of an integer $a$ modulo an odd prime $p$ is define by
+$$\bigg(\frac{a}{p}\bigg) = 
+\begin{cases}
+\ \ 0 & \text{if $a=0$} \\
+\ \ 1 & \text{if $a$ is a quadratic residue modulo $p$} \\
+-1 & \text{if $a$ is a quadratic non-residue modulo $p$}
+\end{cases}$$
+\item Theorem: If $p$ is an odd prime, then 
+$$\bigg(\frac{a}{p}\bigg) = a^{(p-1)/2} \mod p$$
+\item Proof:
+\begin{itemize}
+\item [$\circ$] If $a = y^2 \mod p$, then $a^{(p-1)/2} = y^{p-1} = 1 \mod p$.
+\item [$\circ$] If $a^{(p-1)/2} = 1 \mod p$ and $b$ generates $\mathbb{Z}_p^*$, then $a^{(p-1)/2} = b^{x(p-1)/2} = 1 \mod p$ for some $x$. Since $b$ is a generator, $(p-1) \mid x(p-1)/2$ and $x$ must be even.
+\item [$\circ$] If $a$ is a non-residue, then $a^{(p-1)/2} \neq 1 \mod p$, but $\big(a^{(p-1)/2}\big)^2 = 1 \mod p$, so $a^{(p-1)/2} = -1 \mod p$.
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{Jacobi Symbol}
+
+\begin{itemize}
+\item Definition: The Jacobi Symbol of an integer $a$ modulo an odd integer $b = \prod_i p_i^{e_i}$, with $p_i$ prime, is defined by $$\bigg(\frac{a}{b}\bigg) = \prod_i \bigg(\frac{a}{p_i}\bigg)^{e_i}.$$
+\item Note that we can have $\big(\frac{a}{b}\big) = 1$ even when $a$ is a non-residue modulo $b$.
+\item Basic Properties:
+\begin{align*}
+\bigg(\frac{a}{b}\bigg) &= \bigg(\frac{a \mod b}{b}\bigg) \\
+\bigg(\frac{ac}{b}\bigg) &= \bigg(\frac{a}{b}\bigg) \bigg(\frac{a}{b}\bigg) .
+\end{align*}
+\item Law of Quadratic Reciprocity: If $a$ and $b$ are odd integers, then
+$$\bigg(\frac{a}{b}\bigg) = (-1)^{\frac{(a-1)(b-1)}{4}} \bigg(\frac{b}{a}\bigg) .$$
+\item Supplementary Laws: If $b$ is an odd integer, then
+$$\bigg(\frac{-1}{b}\bigg) = (-1)^{\frac{b-1}{2}} \text{\ and \ } \bigg(\frac{2}{b}\bigg) = (-1)^{\frac{b^2-1}{8}} .$$
+\end{itemize}
+
+\subsubsection*{Computing the Jacobi Symbol}
+
+The following assumes that $a \geq 0$ and that $b \geq 3$ is odd.
+
+\begin{algorithmic}[1]
+\Procedure{Jacobi}{$a,b$}
+\If{$a<2$}
+\State \Return $a$
+\EndIf
+\State $s \gets 1$
+\While{$a$ is even}
+\State $s \gets s \cdot (-1)^{\frac{1}{8}(b^2-1)}$
+\State $a \gets a/2$
+\EndWhile
+\If{$a<b$}
+\State \Call{Swap}{$a,b$}
+\State $s \gets s \cdot (-1)^{\frac{1}{4}(a-b)(b-1)}$
+\EndIf
+\State \Return $s \cdot \Call{Jacobi}{a \mod b, b}$
+\EndProcedure
+\end{algorithmic}
+
+\subsubsection*{Solovay-Strassen Primality Test}
+
+The following assumes that $n \geq 3$.
+
+\begin{algorithmic}[1]
+\Procedure{SolovayStrassen}{$n,r$}
+\For{$i=1$ \textbf{to} $r$}
+\State Choose $0 < a < n$ randomly.
+\If{$\big(\frac{a}{n}\big) = 0$ or $\big(\frac{a}{n}\big) \neq a^{(n-1)/2} \mod n$}
+\State \Return \textit{composite}
+\EndIf
+\EndFor
+\State \Return \textit{probably prime}
+\EndProcedure
+\end{algorithmic}
+
+\begin{itemize}
+\item Analysis: If $n$ is prime, then $0 \neq \big(\frac{a}{n}\big) = a^{(n-1)/2} \mod n$ for all $0 < a < n$, so we never claim that a prime is composite.
+\item If $\big(\frac{a}{n}\big) = 0$, then $\big(\frac{a}{p}\big) = 0$ for some prime factor $p$ of $n$. Thus, $p \mid a$ and $n$ is composite, so we never wrongly return from within the loop.
+\item At most half of all elements $a$ in  $\mathbb{Z}_n^*$ have the property that $$\bigg(\frac{a}{n}\bigg) = a^{(n-1)/2} \mod n.$$
+\end{itemize}
+
+\subsubsection*{More On Primality Tests}
+
+\begin{itemize}
+\item The Miller-Rabin test is faster.
+\item Testing many primes can be done faster than testing each separately
+\item Those are \textit{probabilistic} primality tests, but there is a \textit{deterministic} test, so primes are in \P.
+\end{itemize}
+
+\subsection*{Security of RSA}
+
+\subsubsection*{Factoring}
+
+\begin{itemize}
+\item The obvious way to break RSA is to factor the public modulus $N$ and recover the prime factors $p$ and $q$.
+\begin{itemize}
+\item [$\circ$] The number of field sieve factors $N$ in time 
+$$\mathcal{O}\bigg(e^{(1.92+o(1)) \big((\ln N)^{1/3}+ (\ln \ln N)^{2/3}\big)} \bigg) .$$
+\item [$\circ$] The elliptic curve method factors $N$ in time
+$$\mathcal{O}\bigg(e^{(1+o(1))\sqrt{2\ln p \ln\ln p}}\bigg) .$$
+\end{itemize}
+\item Note that the latter only depends on the size of $p$!
+\end{itemize}
+
+\subsubsection*{Small Encryption Exponents}
+
+\begin{itemize}
+\item Suppose that $e=3$ is used by all parties as an encryption exponent.
+\begin{itemize}
+\item [$\circ$] Small Message: If $m$ is small, then $m^e < N$. Thus, no reduction takes place, and $m$ can be computed in $\mathbb{Z}$ by taking the $e$\ts{th} root.
+\item [$\circ$] Identical Plaintexts: If a message $m$ is encrypted under moduli $N_1, N_2, N_3,$ and $N_4$ as $c_1, c_2, c_3,$ and $c_4$, then CRT implies a $c \in \mathbb{Z}_{N_1N_2N_3N_4}$ such that $c=c_i \mod N_i$ and $c = m^e \mod N_1N_2N_3N_4$ with $m < N_i$.
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{Additional Caveats}
+
+\begin{itemize}
+\item Identical Moduli: If a message $m$ is encrypted as $c_1$ and $c_2$ using distinct encryption exponents $e_1$ and $e_2$ with gcd($e_1,e_2$) = 1, and a modulus $N$, then we can find $a,b$ such that $ae_1 + be_2 = 1$ and $m = c_1^ac_2^b \mod N$.
+\item Reiter-Franklin Attack: If $e$ is small enough then encryptions of $m$ and $f(m)$ for a polynomial $f \in \mathbb{Z}_N[x]$ allows efficient computation of $m$.
+\item Wiener's Attack: If $3d < N^{1/4}$ and $q<p<2q$, then $N$ can be factored in polynomial time with good probability. 
+\end{itemize}
+
+\subsubsection*{Factoring From Order of Multiplicative Group}
+
+\begin{itemize}
+\item Given $N$ and $\phi(N)$, we can find $p$ and $q$ by solving
+\begin{align*}
+N &= pq \\
+\phi(N) &= (p-1)(q-1)
+\end{align*}
 \end{itemize}
 
 \end{document}
