@@ -1010,15 +1010,15 @@ Public-key cryptography was discovered:
 \end{itemize}
 
 \begin{itemize}
-\item Alice encrypts a message $m$ using Bob's public key $pk$ and encryption algorithm $E$ such that $c = E_{pk}(m)$. Bob decrypts the ciphertext $c$ using his secret key $sk$ and decryption algorithm  $D$ such that $m = E_{sk}(c)$.
+\item Alice encrypts a message $m$ using Bob's public key pk and encryption algorithm $E$ such that $c = E_{\text{pk}}(m)$. Bob decrypts the ciphertext $c$ using his secret key sk and decryption algorithm  $D$ such that $m = E_{\text{sk}}(c)$.
 \item Definition: Mathematically, a public-key cryptosystem can be defined as a tuple $({\mathcal Gen}, E, D)$ where:
 
 \begin{itemize}
-\item [$\circ$] ${\mathcal Gen}$ is a probabilistic key generation algorithm that outputs key pairs $(pk,sk)$,
-\item [$\circ$] $E$ is a (possibly probabilistic) encryption algorithm that given a public key $pk$ and a message $m$ in the plaintext space ${\mathcal M}_{pk}$ outputs a ciphertxt $c$, and
-\item [$\circ$] $D$ is a decryption algorithm that given a secret key $sk$ and a ciphertext $c$ outputs a plaintext $m$, 
+\item [$\circ$] ${\mathcal Gen}$ is a probabilistic key generation algorithm that outputs key pairs (pk, sk),
+\item [$\circ$] $E$ is a (possibly probabilistic) encryption algorithm that given a public key pk and a message $m$ in the plaintext space ${\mathcal M}_{\text{pk}}$ outputs a ciphertxt $c$, and
+\item [$\circ$] $D$ is a decryption algorithm that given a secret key sk and a ciphertext $c$ outputs a plaintext $m$, 
 \end{itemize}
-such that $D_{sk}(E_{pk}(m)) = m$ for every $(pk,sk)$ and $m \in \mathcal {M}_{pk}$.
+such that $D_{\text{sk}}(E_{\text{pk}}(m)) = m$ for every (pk, sk) and $m \in \mathcal {M}_{pk}$.
 \end{itemize}
 
 \subsection*{RSA}
@@ -1232,6 +1232,151 @@ $$\mathcal{O}\bigg(e^{(1+o(1))\sqrt{2\ln p \ln\ln p}}\bigg) .$$
 N &= pq \\
 \phi(N) &= (p-1)(q-1)
 \end{align*}
+\end{itemize}
+
+\section*{Lecture 10 - CPA Security, ROM-RSA, Rabin and Diffie-Hellman}
+
+\subsection*{Factoring from Encryption \& Decryption Exponents}
+
+\begin{itemize}
+\item If $N = pq$ with $p$ and $q$ prime, then the CRT implies that $$x^2 = 1 \mod N$$ has four distinct solutions in $\mathbb{Z}_N^*$, and two of these are non-trivial, i.e., distinct from $\pm 1$.
+\item If $x$ is a non-trivial root, then $$(x-1)(x+1) = tN$$ but $N \nmid (x-1), (x+1),$ so $$\text{gcd}(x-1,N) > 1 \text{ \ and \ } \text{gcd}(x+1,N) > 1 .$$
+\item The encryption \& decryption exponents satisfy $$ed = 1 \mod \phi(N),$$ so if we have $ed - 1 = 2^sr$ with $r$ odd, then
+\begin{align*}
+(p-1) &= 2^{s_p}r_p \text{ \ which divides \ } 2^sr \text{ \ and \ }\\ 
+(q-1) &= 2^{s_q}r_q \text{ \ which divides \ } 2^sr .\\ 
+\end{align*}
+\item If $v \in \mathbb{Z}_N^*$ is random, then $w = v^r$ is random in the subgroup of elements with order $2^i$ for some $0 \leq i \leq \text{max}\{s_p,s_q\}.$
+\item Suppose $s_p \geq s_q$. Then for some $0<i<s_p$, $$w^{2^i} = \pm 1 \mod q$$ and $$w^{2^i} \mod p$$ is uniformly distributed in $\{1,-1\}$.
+\item Conclusion: $w^{2^i} (\mod N)$ is a non-trivial root of 1 with probability 1/2, which allows us to factor $N$.
+\end{itemize}
+
+\subsection*{CPA Security}
+
+\begin{itemize}
+\item RSA clearly provides some kind of "security", but it is clear that we need to be more careful with what we ask for.
+\item Intuitively, we want to leak no \textbf{information} of the encrypted plaintext.
+\item Intuitively, we want to leak no \textbf{knowledge} of the encrypted plaintext.
+\item In other words, no function of the plaintext can efficiently be guessed notably better from its ciphertext than without it.
+\item \Call{$\text{Exp}^b_{{\mathcal CS},A}$}{CPA Security Experiment}
+\begin{itemize}
+\item [$\circ$] Generate Public Key: (pk, sk) $\gets$ Gen($1^n$).
+\item [$\circ$] Adversarial Choice of Messages: $(m_0, m_1, s) \gets A(\text{pk})$.
+\item [$\circ$] Guess Message: Return the first output of $A(E_{\text{pk}}(m_b), s)$.
+\end{itemize}
+\item Definition: A cryptosystem ${\mathcal CS} = ({\mathcal Gen}, E, D)$ is said to be CPA secure if for every polynomial time algorithm $A$ $$|Pr[\text{Exp}^0_{{\mathcal CS},A} = 1] - Pr[\text{Exp}^1_{{\mathcal CS},A} = 1]|$$ is negligible.
+\item Every CPA secure cryptosystem must be probabilistic!
+\item Theorem: Suppose ${\mathcal CS} = ({\mathcal Gen}, E, D)$ is a CPA secure cryptosystem.\\ Then the related cryptosystem where a $t(n)-$list of messages, with $t(n)$ polynomial, is encrypted by repeated independent encryption of each component using the same public key is also CPA secure.
+\item CPA security is useful!
+\end{itemize}
+
+\subsection*{ROM-RSA}
+
+\begin{itemize}
+\item Definition: The RSA assumption states that if:
+\begin{itemize}
+\item [$\circ$] $N = pq$ factors into two randomly chosen primes $p$ and $q$ of the same bit-size,
+\item [$\circ$] $e$ is in $\mathbb{Z}_{\phi(N)}^*$,
+\item [$\circ$] $m$ is randomly chosen in $\mathbb{Z}_N^*$,
+\end{itemize}
+then for every polynomial time algorithm $A$ $$Pr[A(N,e,m^e \mod N) = m]$$ is negligible. 
+\end{itemize}
+
+\subsubsection*{CPA Secure ROM-RSA}
+
+\begin{itemize}
+\item Suppose that $f : \{0,1\}^n \rightarrow \{0,1\}^n$ is a randomly chosen function (a random oracle).
+\begin{itemize}
+\item [$\circ$] Key Generation: Choose a random RSA key pair $((N,e), (p,q,d))$, with $\log_2 N = n$.
+\item [$\circ$] Encryption: Encrypt a plaintext $m \in \{0,1\}^n$ by choosing $r\in \mathbb{Z}_N^*$ randomly and computing $$(u,v) = (r^e \mod N, f(r) \oplus m).$$
+\item [$\circ$] Decryption: Decrypt a ciphertext $(u,v)$ by $$m = v \oplus f(u^d).$$
+\end{itemize}
+\item We increase the ciphertext size by a factor of two.
+\item Our analysis is in the random oracle model, which is unsound!
+\item Solutions: 
+\begin{itemize}
+\item [$\circ$] Using a "optimal" padding the first problem can be reduced. See standard OAEP+.
+\item [$\circ$] Using a scheme with much lower rate, the second problem can be removed.
+\end{itemize}
+\end{itemize}
+
+\subsection*{Rabin}
+
+\begin{itemize}
+\item Key Generation:
+\begin{itemize}
+\item [$\circ$] Choose $n-$bit primes $p$ and $q$ such that $p,q = 3 \mod 4$ randomly and define $N = pq$.
+\item [$\circ$] Output the key pair $(N, (p,q))$, where $N$ is the public key and $(p,q)$ is the secret key.
+\end{itemize}
+\item Encryption: Encrypt a plaintext $m$ by computing $$c = m^2 \mod N.$$
+\item Decryption: Decrypt a ciphertext $c$ by computing $$m = \sqrt{c} \mod N.$$
+\item There are four roots, so which one should be used?
+\item Suppose $y$ is a quadratic residue modulo $p$.
+\begin{align*}
+\Big(\pm y^{(p+1)/4}\Big)^2 &= y^{(p+1)/2} \mod p \\
+&= y^{(p-1)/2} y \mod p \\
+&= \bigg(\frac{y}{p}\bigg) y \\
+&= y \mod p
+\end{align*}
+\item In Rabin's cryptosystem:
+\begin{itemize}
+\item [$\circ$] Find roots for $y_p = y \mod p$ and $y_q = y \mod q$.
+\item [$\circ$] Combine roots to get the four roots modulo $N$. Choose the "right" root and output the plaintext.
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{Security of Rabin's Cryptosystem}
+
+\begin{itemize}
+\item Theorem: Breaking Rabin's cryptosystem is equivalent to factoring.
+\item Idea:
+\begin{itemize}
+\item [$\circ$] Choose random element $r$.
+\item [$\circ$] Hand $r^2 \mod N$ to adversary.
+\item [$\circ$] Consider outputs $r'$ from the adversary such that $(r')^2 = r^2 \mod N$. then $r' \neq \pm r \mod N$, with probability 1/2, in which cased gcd($r' - r, N$) gives a factor of $N$.
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{A Goldwasser-Micali Variant of Rabin}
+
+\begin{itemize}
+\item Theorem [CG98]: If factoring is hard and $r$ is a random quadratic residue modulo $N$, then for every polynomial time algorithm $A$ $$Pr[A(N,r^2 \mod N) = \text{lsb}(r)]$$ is negligible.
+\begin{itemize}
+\item [$\circ$] Encryption: Encrypt a plaintext $m \in \{0,1\}$ by choosing a random quadratic residue $r$ modulo $N$ and computing $$(u,v) = r^2 \mod N, \text{lsb}(r) \oplus m).$$
+\item [$\circ$] Decryption: Decrypt a ciphertext $(u,v)$ by $$m = v \oplus \text{lsb}(\sqrt{u}) \text{ \ where $\sqrt{u}$ is a qudratic residue.}$$
+\end{itemize}
+\end{itemize}
+
+\subsection*{Diffie-Hellman}
+
+\begin{itemize}
+\item Diffie and Hellman asked themselves: How can two parties efficiently agree on a secret key using only public communication?
+\item Construction: Let $G$ be a cyclic group of order $q$ with generator $g$.
+\begin{itemize}
+\item [$\circ$] Alice picks $a \in \mathbb{Z}_q$ randomly, computes $y_a = g^a$ and hands $y_a$ to Bob.
+\item [$\circ$] Bob picks $b \in \mathbb{Z}_q$ randomly, computes $y_b = g^b$ and hands $y_b$ to Alice.
+\item [$\circ$] Alice computes $k = y_b^a$. 
+\item [$\circ$] Bob computes $k = y_a^b$.
+\item [$\circ$] The joint secret key is $k$.
+\end{itemize}
+\item Problems:
+\begin{itemize}
+\item [$\circ$] Susceptible to man-in-the-middle attack without authentication.
+\item [$\circ$] How do we map a random element $k \in G$ to a random symmetric key in $\{0,1\}^n$?
+\end{itemize}
+\end{itemize}
+
+\subsubsection{The El Gamal Cryptosystem}
+
+\begin{itemize}
+\item Definition: Let $G$ be a cyclic group of order $q$ with generator $g$.
+\begin{itemize}
+\item [$\circ$] The key generation algorithm chooses a random element $x \in  \mathbb{Z}_q$ as the private key and defines the public key as $$y = g^x.$$
+\item [$\circ$] The encryption algorithm takes a message $m \in G$ and the public key $y$, chooses $r \in \mathbb{Z}_q$, and outputs the pair $$(u,v) = E_y(m,r) = (g^r,y^rm).$$
+\item [$\circ$] The decryption algorithm takes a ciphertext $(u,v)$ and the secret key and outputs $$m = D_x(u,v) = vu^{-x}.$$
+\end{itemize}
+\item El Gamal is essentially Diffie-Hellman + OTP.
+\item Homomorhpic property (with public key $y$) $$E_y(m_0,r_0)E_y(m_1,r_1) = E_y(m_0m_1,r_0 +r_1).$$ This property is very important in the construction of cryptographic protocols!
 \end{itemize}
 
 \end{document}
