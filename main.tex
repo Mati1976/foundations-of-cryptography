@@ -1366,7 +1366,7 @@ then for every polynomial time algorithm $A$ $$Pr[A(N,e,m^e \mod N) = m]$$ is ne
 \end{itemize}
 \end{itemize}
 
-\subsubsection{The El Gamal Cryptosystem}
+\subsubsection*{The El Gamal Cryptosystem}
 
 \begin{itemize}
 \item Definition: Let $G$ be a cyclic group of order $q$ with generator $g$.
@@ -1377,6 +1377,134 @@ then for every polynomial time algorithm $A$ $$Pr[A(N,e,m^e \mod N) = m]$$ is ne
 \end{itemize}
 \item El Gamal is essentially Diffie-Hellman + OTP.
 \item Homomorhpic property (with public key $y$) $$E_y(m_0,r_0)E_y(m_1,r_1) = E_y(m_0m_1,r_0 +r_1).$$ This property is very important in the construction of cryptographic protocols!
+\end{itemize}
+
+\section*{Lecture 11 - Number Theory continued}
+
+\subsection*{Discrete Logarithm}
+
+\begin{itemize}
+\item Definition: Let $G$ be a cyclic group of order $q$ and let $g$ be a generator $G$. The discrete logarithm of $y \in G$ in the basis $g$ (written $\log_gy$) is defined as the unique $x \in \{0,1,...,q-1\}$ such that $$y=g^x.$$ Compare with a "normal" logarithm! ($\ln y = x$ iff $y = e^x$).
+\item Example: 7 is a generator of $\mathbb{Z}_{12}$ additively, since gcd(7,12) = 1. What is $\log_73$? ($9\cdot 7 = 63 = 3 \mod 12$, so $\log_73 = 9$)
+\item Example: 7 is a generator of $\mathbb{Z}_{13}^*$. What is $\log_79$? ($7^4 = 9 \mod 13$, so $\log_79 = 4$) 
+\end{itemize}
+
+\subsubsection*{Discrete Logarithm Assumption}
+
+\begin{itemize}
+\item Let $G_{q_n}$ be a cyclic group of prime order $q_n$ such that $\lfloor \log_2 q_n \rfloor = n$ for $n = 2,3,4,...,$ and denote the family $\{G_{q_n}\}_{n \in \mathbb{N}}$ by $G$.
+\item Definition: The Discrete Logarithm (DL) Assumption in $G$ states that if generators $g_n$ and $y_n$ of $G_{q_n}$ are randomly chosen, then for every polynomial time algorithm $A$ $$Pr[A(g_n, y_n) = \log_{g_n}y_n]$$ is negligible.
+\item We usually remove the indices from our notation! $$Pr[A(g,y) = \log_g y]$$
+\end{itemize}
+
+\subsubsection*{Diffie-Hellman Assumption}
+
+\begin{itemize}
+\item Definition: Let $g$ be a generator of $G$. The Diffie-Hellman (DH) Assumption in $G$ states that if $a,b \in \mathbb{Z}_q$ are randomly chosen, then for every polynomial time algorithm $A$ $$Pr[A(g^a, g^b) = g^{ab}]$$ is negligible.
+\end{itemize}
+
+\subsubsection*{Decision Diffie-Hellman Assumption}
+
+\begin{itemize}
+\item Definition: Let $g$ be a generator of $G$. The Decision Diffie-Hellman (DDH) Assumption in $G$ states that if $a,b,c \in \mathbb{Z}_q$ are randomly chosen, then for every polynomial time algorithm $A$ $$|Pr[A(g^a, g^b,g^{ab})=1] - Pr[A(g^a,g^b,g^c) = 1]|$$ is negligible.
+\item Relating DL Assumptions:
+\begin{itemize}
+\item [$\circ$] Computing discrete logarithms is at least as hard as computing a Diffie-Hellman element $g^{ab}$ from $g^a$ and $g^b$.
+\item [$\circ$] Computing a Diffie-Hellman element $g^ab$ from $g^a$ and $g^b$ is at least as hard as distinguishing a Diffie-Hellman triple $(g^a,g^b,g^{ab})$ from a random triple $(g^a,g^b,g^c)$.
+\item [$\circ$] In most groups where the DL assumption is conjectured, DH and DDH assumptions are conjectured as well.
+\item [$\circ$] There exists special elliptic curves where DDH problem is easy, but DH assumption is conjectured.
+\end{itemize}
+\end{itemize}
+
+\subsection*{Security of El Gamal}
+
+\begin{itemize}
+\item Finding the secret key is equivalent to DL problem.
+\item Finding the plaintext from the ciphertext and the public key is equivalent to DH problem.
+\item The CPA security of El Gamal is equivalent to DDH problem.
+\end{itemize}
+
+\subsubsection*{Brute Force and Shank's}
+
+\begin{itemize}
+\item Let $G$ be a cyclic group of order $q$ and $g$ a generator. We wish to compute $\log_gy$.
+\begin{itemize}
+\item [$\circ$] Brute Force: $\mathcal{O}(q)$
+\item [$\circ$] Shanks: Time and Space $\mathcal{O}(\sqrt{q})$.
+\begin{itemize}
+\item [$\circ$] Set $z = g^m$ (think of $m$ as $m = \sqrt{q}$).
+\item [$\circ$] Compute $z^i$ for $0 \leq i \leq q/m$.
+\item [$\circ$] Find $0 \leq j \leq m$ and $0 \leq i \leq q/m$ such that $yg^j = z^i$ and output $x = mi - j$.
+\end{itemize}
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{Birthday Paradox}
+
+\begin{itemize}
+\item Lemma: Let $q_0, ..., q_k$ be randomly chosen in a set $S$. Then
+\begin{itemize}
+\item [$\circ$] the probability that $q_i = q_j$ for some $i \neq j$ is approximately $1-e^{-\frac{k^2}{2s}}$, where $s = |S|$, and
+\item [$\circ$] with $k \approx \sqrt{-2s \ln (1 - \delta)}$ we have a collision-probability of $\delta$.
+\end{itemize}
+\item Proof: 
+$$\bigg(\frac{s-1}{s}\bigg) \cdot \bigg(\frac{s-2}{s}\bigg) \cdot ... \cdot \bigg(\frac{s-k}{s}\bigg) \approx \prod_{i=1}^{k}e^{-\frac{i}{s}} \approx e^{-\frac{k^2}{2s}}$$
+\end{itemize}
+
+\subsubsection*{Pollard-$\rho$}
+
+\begin{itemize}
+\item Partition $G$ into $S_1, S_2,$ and $S_3$ "randomly".
+\begin{itemize}
+\item [$\circ$] Generate "random" sequence $\alpha_0, \alpha_1, \alpha_2...$
+\begin{align*}
+\alpha_0 &= g \\
+\alpha_i &= 
+\left\{
+\begin{array}{ll}
+\alpha_{i-1}g & \text{\ if \ } \alpha_{i-1} \in S_1\\
+\alpha_{i-1}^2 & \text{\ if \ } \alpha_{i-1} \in S_2\\
+\alpha_{i-1}y & \text{\ if \ } \alpha_{i-1} \in S_3\\
+\end{array}
+\right.
+\end{align*}
+\item [$\circ$] Each $\alpha_i = g^{a_i}y^{b_i}$, where $a_i, b_i \in \mathbb{Z}_q$ are known!
+\item [$\circ$] If $\alpha_i = \alpha_j$ and $(a_i,b_i) \neq (a_j,b_j)$ then $y = g^{(a_i-a_j)(b_j-b_i)^{-1}}$.
+\item [$\circ$] If $\alpha_i = \alpha_j$, then $\alpha_{i+1} = \alpha_{j+1}$.
+\item [$\circ$] The sequence $(a_0,b_0),(a_1,b_1), ...$ is "essentially random".
+\item [$\circ$] The Birthday bound implies that the (heuristic) expected running time is $\mathcal{O}(\sqrt{q})$.
+\item [$\circ$] We use "double runners" to reduce memory.
+\end{itemize}
+\end{itemize}
+
+\subsection*{Index Calculus}
+
+\begin{itemize}
+\item Let $\mathcal{B} = \{p_1, ..., p_B\}$ be a set of small prime integers.
+\item Compute $a_i = \log_g p_i$ for all $p_i \in \mathcal{B}$.
+\begin{itemize}
+\item [$\circ$] Choose $s_j \in \mathbb{Z}_q$ randomly and attempt to factor $g^{s_j} = \prod_i p_i^{e_{j,i}}$ as an integer.
+\item [$\circ$] If $g^{s_j}$ factored in $\mathcal{B}$ and $e_j = (e_{j,1}, ..., e_{j,B}$) is linearly independent of $e_i, ..., e_{j-1}$, then $j \gets j + 1$.
+\item [$\circ$] If $j < B$, then go to (1).
+\end{itemize}
+
+\item Let $\mathcal{B} = \{p_1, ..., p_B\}$ be a set of small prime integers.
+\item Compute $a_i = \log_g p_i$ for all $p_i \in \mathcal{B}$.
+\begin{itemize}
+\item [$\circ$] Choose $s \in \mathbb{Z}_q$ randomly.
+\item [$\circ$] Attempt to factor $yg^s = \prod_i p_i^{e_i}$ as an integer.
+\item [$\circ$] If a factorisation is found, then output $(\sum_i a_ie_i-s) \mod q$. 
+\end{itemize}
+\item Why doesn't this work for any cyclic group?
+\end{itemize}
+
+\subsubsection*{Example Groups}
+
+\begin{itemize}
+\item $\mathbb{Z}_n$ additively? Bad for crypto!
+\item Large prime order subgroup of $\mathbb{Z}_p^*$ with $p$ prime. In particulate $p = 2q+1$ with $q$ prime.
+\item Large prime order subgroup of $GF_{p^k}^*$.
+\item "Carefully chosen" elliptic curve group.
 \end{itemize}
 
 \end{document}
