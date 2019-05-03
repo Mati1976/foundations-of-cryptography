@@ -1507,4 +1507,134 @@ $$\bigg(\frac{s-1}{s}\bigg) \cdot \bigg(\frac{s-2}{s}\bigg) \cdot ... \cdot \big
 \item "Carefully chosen" elliptic curve group.
 \end{itemize}
 
+\section*{Lecture 13 - Elliptic Curves \& Signature Schemes}
+
+\begin{itemize}
+\item We have argued that discrete logarithm problems are hard in large subgroups of $\mathbb{Z}_p^*$ and $\mathbb{F}_q^*$.
+\item Based on discrete logarithm problems (DL, DH, DDH) we can construct public key cryptosystems, key exchange protocols, and signature schemes.
+\item An elliptic curve is another candidate of a group where discrete logarithm problems are hard. 
+\item Motivation for studying elliptic curves:
+\begin{itemize}
+\item [$\circ$] What if it turns out that solving discrete logarithms in $\mathbb{Z}_p^*$ is easy? Elliptic curves give an alternative.
+\item [$\circ$] The best known DL-algorithms in an elliptic curve group with prime order $q$ are generic algorithms, i.e. the have running time $\mathcal{O}(\sqrt{q})$.
+\item [$\circ$] Arguably we can use shorter keys. This is very important in some practical applications. 
+\end{itemize}
+\item Definition: A plane cubic curve $E$ (in Weierstrass form) over a field $\mathbb{F}$ is given by a polynomial $$y^2 = x^3 + ax + b$$ with $a,b \in \mathbb{F}$. The set of points $(x,y)$ that satisfy this equation $\mathbb{F}$ is written $E(\mathbb{F})$.
+\item Every plane cubic curve over a field of characteristic $\neq 2,3$ can be written in the above form without changing any properties we care about.
+\item We also write
+\begin{align*}
+g(x,y) &= x^3 + ax + b - y^2 \text{\ or \ } \\
+y^2 &= f(x)
+\end{align*}
+where $f(x) = x^3 + ax + b$.
+\end{itemize}
+
+\subsection*{Singular Points}
+
+\begin{itemize}
+\item Definition: A point $(u,v) \in E(\mathbb{E})$, with $\mathbb{E}$ an extension field of $\mathbb{F}$, is singular if $$\frac{\partial g(x,y)}{\partial x}(u,v) = \frac{\partial g(x,y)}{\partial y}(u,v) = 0.$$
+\item Definition: A plane cubic curve is smooth if $E(\overline{\mathbb{F}})$ contains no singular points.\\($\overline{\mathbb{F}}$ is the algebraic closure of $\mathbb{F}$.)
+\item Note that
+\begin{align*}
+\frac{\partial g(x,y)}{\partial x}(x,y) &= f'(x) = 3x^2 + a \text{\ and \ }\\
+\frac{\partial g(x,y)}{\partial y}(x,y) &= -2y
+\end{align*}
+\item Thus, any singular point $(u,v) \in E(\mathbb{F})$ must have:
+\begin{itemize}
+\item [$\circ$] $v=0$,
+\item [$\circ$] $f(u) = 0$, and $f'(u) = 0$.
+\end{itemize}
+\item Then $f(x) = (x-u)h(x)$ and $f'(x) = h(x) + (x-u)h'(x)$, so $(u,v)$ is singular if $v=0$ and $u$ is a double-root of $f$.
+\end{itemize}
+
+\subsection*{Discriminant}
+
+\begin{itemize}
+\item In general a "discriminant" can be used to check if a polynomial has a double root.
+\item Definition: The discriminant $\Delta(E)$ of a plane curve $y^2 = x^3 + ax + b$ is given by $-4a^3 - 27b^2$.
+\item Lemma: The polynomial $f(x)$ does not have a double root iff $\Delta(E) \neq 0$, in which case the curve is called smooth.
+\end{itemize}
+
+\subsection*{Line Defined By Two Points On Curve}
+
+\begin{itemize}
+\item Let $l(x)$ be a line that intersects the curve in $(u_1,v_1)$ and $(u_2,v_2)$. Then $$l(x) = k(x-u_1) + v_1$$ where 
+$$k = 
+\left\{
+\begin{array}{ll}
+\frac{v_2-v_1}{u_2-u_1} & \text{\ if \ } (u_1,v_1) \neq (u_2,v_2)\\
+\frac{3u_1^2 + a}{2v_1} & \text{\ otherwise \ }
+\end{array}
+\right.$$
+\item We are cheating a little here in that we assume that we don't have $u_1 = u_2$ and $v_1 \neq v_2$ or $v_1 = v_2 = 0$. In both such cases we get a line parallel with $x = 0$ that we deal with in a special way.
+\end{itemize}
+
+\subsection*{Finding the Third Point}
+
+\begin{itemize}
+\item The intersection points between $l(x)$ and the curve are given by the zeros of $$t(x) = g(l(x),x) = f(x) - l(x)^2$$ which is a cubic polynomial with known roots $u_1$ and $u_2$.
+\item To find the third intersection point $(u_3,v_3)$ we note that $$t(x) = (x-u_1)(x-u_2)(x-u_3) = x^3 - (u_1 + u_2 + u_3)x^2 + r(x)$$ where $r(x)$ is linear. Thus, we can find $u_3$ from $t$'s coefficients!
+\item Given any two points $A$ and $B$ on the curve that defines a line, we can find a third intersection point $C$ with the curve (even if $A = B$).
+\item The only exception is if our line $l(x)$ is parallel with the $y$-axis.
+\item To "fix" this exception we add a point at infinity $O$, roughly at $(0,\infty)$ (the projective plane). Intuition: the side of a long straight road seem to intersect infinitely far away.
+\item We define the sum of $A$ and $B$ by $(x, -y)$, where $(x,y)$ is the third intersection point of the line defined by $A$ and $B$  with the curve.
+\item We define the inverse of $(x,y)$ by $(x,-y)$.
+\item The main technical difficulty in proving that this gives a group is to prove the associative law. This can be done with Bezout's theorem (not the one covered in class), or by (tedious) elementary algebraic manipulation.
+\end{itemize}
+
+\subsection*{Elliptic Curves}
+
+\begin{itemize}
+\item There are many elliptic curves with special properties. 
+\item There are many ways to represent the same curve and to implement curves as well as representing and implementing the underlying field.
+\item More requirements than smoothness must be satisfied for a curve to be suitable for cryptographic use.
+\item Fortunately, there are standardised curves.\\(I would need a very strong reason not to use these curves and I would be extremely careful, consulting researchers specialising in elliptic curve cryptography.)
+\end{itemize}
+
+\subsection*{Signature Schemes}
+
+\subsubsection*{Digital Signature}
+
+\begin{itemize}
+\item A digital signature is the public-key equivalent of a MAC; the receiver verifies the integrity and authenticity of a message.
+\item Does a digital signature replace a real handwritten one?
+\end{itemize}
+
+\subsubsection{Textbook RSA Signature}
+
+\begin{itemize}
+\item Generate RSA keys $((N,e), (p,q,d))$.
+\item To sign a message $m \in \mathbb{Z}_N$, compute $\sigma = m^d \mod N$.
+\item To verify a signature $\sigma$ of a message $m$ verify that $\sigma^e = m \mod N$.
+\item Are Textbook RSA Signatures any good?
+\item If $\sigma$ is a signature of $m$, then $\sigma^2 \mod N$ is a signature of $m^2 \mod N$.
+\item If $\sigma_1$ and $\sigma_2$ are signatures of $m_1$ and $m_2$, then $\sigma_1\sigma_2 \mod N$ is a signature of $m_1m_2 \mod N$.
+\item We can also pick a signature $\sigma$ and compute the message it is a signature of by $m = \sigma^e \mod N$.
+\item We must be more careful!
+\end{itemize}
+
+\subsubsection*{Signature Scheme}
+
+\begin{itemize}
+\item Gen generates a key pair (pk, sk).
+\item Sig takes a secret key sk and a message $m$ and computes signature $\sigma$.
+\item Vf takes a public key pk, a message $m$, and a candidate signature $\sigma$, verifies the candidate signature, and outputs a single-bit verdict.
+\end{itemize}
+
+\subsubsection*{Existential Unforgeability}
+
+\begin{itemize}
+\item Definition: A signature scheme (Gen, Sig, Vf) is secure against existential forgeries if for every polynomial time algorithm $A$ and a random key pair (pk, sk) $\gets$ Gen($1^n$),
+$$Pr[A^{\text{Sig}_{\text{sk}}(\cdot)}(\text{pk}) = (m, \sigma) \land \text{Vf}_{\text{pk}}(m,\sigma) = 1 \land\ \forall i : m \neq m_i]$$
+is negligible where $m_i$ is the $i$\ts{th} query to $\text{Sig}_{\text{sk}}(\cdot)$.
+\end{itemize}
+
+\subsubsection*{Provably Secure Signature Schemes}
+
+\begin{itemize}
+\item Provably secure signature schemes exist if one-way functions exist (in plain model without ROM), but the construction is more involved and typically less efficient.
+\item Provably secure signature schemes are rarely used in practice!
+\item Standards used in practices: RSA Full Domain Hash, DSA, EC-DSA. The latter two may be viewed as variants of Schnorr signatures.
+\end{itemize}
+
 \end{document}
