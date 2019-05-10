@@ -1600,7 +1600,7 @@ $$k =
 \item Does a digital signature replace a real handwritten one?
 \end{itemize}
 
-\subsubsection{Textbook RSA Signature}
+\subsubsection*{Textbook RSA Signature}
 
 \begin{itemize}
 \item Generate RSA keys $((N,e), (p,q,d))$.
@@ -1637,7 +1637,7 @@ is negligible where $m_i$ is the $i$\ts{th} query to $\text{Sig}_{\text{sk}}(\cd
 \item Standards used in practices: RSA Full Domain Hash, DSA, EC-DSA. The latter two may be viewed as variants of Schnorr signatures.
 \end{itemize}
 
-\section{Lecture 13 - Trapdoor One-Way Permutations \& PKIs}
+\section*{Lecture 13 - Trapdoor One-Way Permutations \& PKIs}
 
 \subsection*{Based on Trapdoor One-Way Permutations}
 
@@ -1694,7 +1694,7 @@ $$y^{c-c'} = \frac{y^c}{y^{c'}} = \frac{y^c\alpha}{y^{c'}\alpha} = \frac{g^d}{g^
 \item Such protocols are called (honest verifier) zero-knowledge proofs of knowledge.
 \end{itemize}
 
-\subsubsection{Schnorr's Signature Scheme in ROM}
+\subsubsection*{Schnorr's Signature Scheme in ROM}
 
 \begin{itemize}
 \item Let $H: \{0,1\}^* \rightarrow \mathbb{Z}_q$ be a random oracle.
@@ -1769,6 +1769,117 @@ $$y^{c-c'} = \frac{y^c}{y^{c'}} = \frac{y^c\alpha}{y^{c'}\alpha} = \frac{g^d}{g^
 \item [$\circ$] Practical since it can be implemented in software or hardware?
 \item [$\circ$] What is "random looking"?
 \end{itemize}
+\end{itemize}
+
+\section*{Lecture 14 - Pseudo-Random Generator}
+
+\begin{itemize}
+\item Definition: An efficient algorithm PRG is a pseudo-random generator (PRG) if there exists a polynomial $p(n) > n$ such that for every polynomial time adversary $A$, if a seed $S \in \{0,1\}^n$ and a random string $u \in \{0,1\}^{p(n)}$ are chosen randomly, then $$|Pr[A(\text{PRG}(s)) =1] - Pr[A(u) = 1]|$$ is negligible. 
+\item informally, $A$ can not distinguish PRG($s$) from a truly random string in $\{0,1\}^{p(n)}$.
+\item Before we consider how to construct a PRG we consider what the definition gives us:
+\begin{itemize}
+\item [$\circ$] Suppose that there exists a PRG that extends its output by a single bit.
+\item [$\circ$] This would not be very useful to us, e.g., to generate a random prime we need many random bits.
+\item [$\circ$] Can we use the given PRG to construct another PRG which extends its output more?
+\end{itemize}
+\item Construction: Let PRG be a pseudo-random generator. We let PRG$_t$ be the algorithm that takes $s_{-1} \in \{0,1\}^n$ as input, computes $s_0, ..., s_{t-1}$ and $b_0,...,b{t-1}$ as $$(s_i,b_i)= \text{PRG}(s_{i-1})$$ and outputs $(b_0,...,b{t-1}$.
+\item Theorem: Let $p(n)$ be a polynomial and PRG a pseudo-random generator. Then PRG$_{p(n)}$ is a pseudo-random generator that on input $s \in \{0,1\}^n$ outputs a string in $\{0,1\}^{p(n)}$.
+\item We can go on "forever"!
+\end{itemize}
+
+\subsubsection*{Random String From Random Oracle}
+
+\begin{itemize}
+\item Theorem: If $F: \{0,1\}^n \rightarrow \{0,1\}^m$ is a random function, then $(F(0),F(1),F(2),...,F(t-1))$ is a $tm$-bit string.
+\item Can we do this using a pseudo-random function?
+\item Can we replace the random function by SHA-2?
+\end{itemize}
+
+\subsubsection*{Pseudo-Random Function}
+
+\begin{itemize}
+\item Recall the definition of a pseudo-random function.
+\item Definition: A family of functions $F: \{0,1\}^k \times \{0,1\}^n \rightarrow \{0,1\}^n$ is pseudo-random if for all polynomial time oracle adversaries $A$
+$$\Bigg|\Pr_{K} \Big[A^{F_K(\cdot)}=1 \Big] - \Pr_{R:\{0,1\}^n\rightarrow\{0,1\}^n} \Big[A^{R(\cdot)}=1\Big] \Bigg|$$ is negligible.
+\end{itemize}
+
+\subsubsection*{Pseudo-Random Generator From Pseudo-Random Function}
+
+\begin{itemize}
+\item Theorem: Let $\{F_K\}_{K \in \{0,1\}^k}$ be a pseudo-random function for a random choice of $K$. then the PRG defined by:
+$$\text{PRG}(s) = (F_s(0),F_s(1),F_s(2),...,F_s(t))$$ is a pseudo-random generator.
+\item Construction: Let PRG: $\{0,1\}^k \rightarrow \{0,1\}^{2k}$ be a pseudo-random generator, and define a family of functions $F = \{F_K\}_{K \in \{0,1\}^k}$ as follows.
+\begin{itemize}
+\item [$\circ$] Let $x_{[i]} = (x_0,...,x_i)$
+\item [$\circ$] On key $K$ and input $x, F_K$ computes its output as follows:
+\begin{enumerate}
+\item computes $(r_0^0,r_1^0) = \text{PRG}(K)$.
+\item Computes $$(r^i_{x_{[i-1]}||0},r^i_{x_{[i-1]}||1}) = \text{PRG}(r^{i-1}_{x_{[i-1]}})$$ for $i = 1,...,n-1$.
+\item Outputs $r_{x_{[n-1]}}$.
+\end{enumerate}
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{One-Way Permutation}
+
+\begin{itemize}
+\item Definition: A family $F = \{f_n\}$ of permutations $f_n \{0,1\}^n \rightarrow \{0,1\}^n$ is said to be one-way if for a random $x \in \{0,1\}^n$ and every polynomial time algorithm $A$ $$Pr[A(f_n(x)) = x] < \epsilon(n)$$ for a negligible function $\epsilon(n)$.
+\item (Note that for permutations we may request the unique preimage.)
+\end{itemize}
+
+\subsubsection*{Hardcore Bit}
+
+\begin{itemize}
+\item Definition: Let $F = \{f_n\}$ be a family of permutations $f_n : \{0,1\}^n \rightarrow \{0,1\}^n$ and $B = \{b_n\}$ a family of "bits" $b_n : \{0,1,\}^n \rightarrow \{0,1\}$. Then $B$ is a hardcore bit of $F$ if for random $x \in \{0,1\}^n$ and every polynomial time algorithm $A$ $$|Pr[A(f_n(x)) = b_n(x)] - 1/2| < \epsilon(n)$$ for a negligible function $\epsilon(n)$.
+\item Theorem: For every one-way permutation, there is a (possibly different) one-way permutation with a hardcore bit.
+\end{itemize}
+
+\subsubsection*{PRG from One-Way Permutation}
+
+\begin{itemize}
+\item Construction: Let $F$ be a one-way permutation and define PRG by PRG$_n(s) = f_n(s)||b_n(s)$ for $x \in \{0,1\}^n$.
+\item Theorem: PRG : $\{0,1\}^n \rightarrow \{0,1\}^{n+1}$ is a pseudo-random generator.
+\end{itemize}
+
+\subsubsection*{PRG From Any One-Way Function}
+
+\begin{itemize}
+\item Theorem: There is a construction PRG$_f$ that is a a PRG if $f$ is a one-way function (possibly non-permutation).
+\item The construction is very involved and is completely impractical. (Johan H\aa stad)
+\end{itemize}
+
+\subsubsection*{What is Used in Practice?}
+
+\begin{itemize}
+\item Various standards contain some of the following elements.
+\begin{itemize}
+\item [$\circ$] Fast hardware generator + "algorithmic strengthening".
+\item [$\circ$] \texttt{/dev/random}
+\begin{itemize}
+\item Entropy gathering deamon with estimate of amount of entropy.
+\item FreeBSD: Executes the PRG \textit{Yarrow} (or \textit{Futura}) pseudo-random algorithm.
+\item SunOs and Un*xes use similar approaches.
+\item Windows has similar devices.
+\end{itemize}
+\item [$\circ$] Stream cipher, e.g. block-cipher in CFB or CTR mode.
+\item [$\circ$] Hashfunction with secret prefix and counter (essentially our PRF $\rightarrow$ PRG construction).
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{Infamous Mistakes}
+
+\begin{itemize}
+\item (1995) The original Netscape SSL code used time of the day and process IDs to seed its pseudo random giving way too little entropy in the seed. 
+\item (2008) Debian's OpenSSL commented out a critical part of the code that reduced the entropy of keys drastically!
+\item (2012) RSA public keys with common factors.
+\end{itemize}
+
+\subsubsection*{Important Conclusions}
+
+\begin{itemize}
+\item Security bugs are not found by testing!
+\item With an insecure pseudo-random generator anything on top of it will be insecure.
+\item Any critical code must be reviewed after every modification, e.g., keep hashes of critical code.
 \end{itemize}
 
 \end{document}
