@@ -1637,4 +1637,138 @@ is negligible where $m_i$ is the $i$\ts{th} query to $\text{Sig}_{\text{sk}}(\cd
 \item Standards used in practices: RSA Full Domain Hash, DSA, EC-DSA. The latter two may be viewed as variants of Schnorr signatures.
 \end{itemize}
 
+\section{Lecture 13 - Trapdoor One-Way Permutations \& PKIs}
+
+\subsection*{Based on Trapdoor One-Way Permutations}
+
+\begin{itemize}
+\item Let $f = \{f_\alpha\}$ be an ensemble of permutations (bijections).
+\begin{itemize}
+\item [$\circ$] Gen generates a random key pair $\alpha$ = (pk, sk). Less formaly Gen generates a pair $(f_\alpha,f_\alpha^{-1})$.
+\item [$\circ$] Eval takes pk and $x$ as input and efficiently evaluates $f_\alpha(x)$.
+\item [$\circ$] Invert takes sk and $y$ as input and efficiently evaluates the inverse $f_\alpha^{-1}(y)$.
+\end{itemize}
+\item One-way if Eval$_\text{pk}(\cdot)$ is one-way for a random pk.
+\item RSA is a trap-door permutation over $\mathbb{Z}_N^*$.
+\end{itemize}
+
+\subsubsection*{Full Domain Hash Signature in ROM}
+
+\begin{itemize}
+\item Let $f = \{f_\alpha\}$ be a trapdoor permutation (family) and let $H: \{0,1\}^* \rightarrow \{0,1\}^n$ be a random oracle.
+\begin{itemize}
+\item [$\circ$] Gen samples a pair $(f_\alpha,f_\alpha^{-1})$.
+\item [$\circ$] Sig takes $f_\alpha^{-1}$ and a message $m$ as input and outputs $f_\alpha^{-1}\big(H(m)\big)$.
+\item [$\circ$] Vf takes $f_\alpha$, a message $m$, and a candidate signature $\sigma$ as input, and outputs 1 if $f_\alpha(\sigma) = H(m)$ and 0 otherwise.
+\end{itemize}
+\end{itemize}
+
+\subsection*{Based on Proofs of Knowledge}
+
+\subsubsection*{Proof of Knowledge of Exponent}
+
+\begin{itemize}
+\item In an identification scheme one party convinces another that it holds some special token.
+\begin{itemize}
+\item [$\circ$] Let $G_q$ be a group of prime order $q$ with generator $g$.
+\item [$\circ$] Let $x \in \mathbb{Z}_q$ and define $y = g^x$.
+\item [$\circ$] Can we prove knowledge of $x$ without disclosing anything about $x$?
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{Schnorr's Protocol}
+
+\begin{itemize}
+\item The prover chooses $r \in \mathbb{Z}_q$ randomly and hands $\alpha = g^r$ to the verifier.
+\item The verifier chooses $c \in \mathbb{Z}_q$ randomly and hands it to the prover.
+\item The prover computes $d = cx + r \mod q$ and hands $d$ to the verifier.
+\item The verifier accepts if $y^c\alpha = g^d$.
+\item Suppose that a machine convinces us in the protocol with probability $\delta$. Does it mean that is knows $x$ such that $y = g^x$?
+\item Run the machine to get $\alpha$.
+\item Complete the interaction twice using the same $\alpha$, once for a challenge $c$ and once for a challenge $c'$, where $c,c' \in \mathbb{Z}_q$ are chosen randomly.
+\item Repeat the previous two steps until the resulting interactions $(\alpha, c, d)$ and $(\alpha, c', d')$ are accepting and $c \neq c'$.
+\item Note that:
+$$y^{c-c'} = \frac{y^c}{y^{c'}} = \frac{y^c\alpha}{y^{c'}\alpha} = \frac{g^d}{g^{d'}} = g^{d-d'}$$ which gives the logarithm $x = (d-d')(c-c')^{-1} \mod q$ such that $y = g^x$.
+\item Anybody can sample $c,d \in \mathbb{Z}_q$ randomly and compute $\alpha = g^d / y^c$.
+\item The resulting tuple $(\alpha, c, d)$ has exactly the same distribution as the transcript of an interaction!
+\item Such protocols are called (honest verifier) zero-knowledge proofs of knowledge.
+\end{itemize}
+
+\subsubsection{Schnorr's Signature Scheme in ROM}
+
+\begin{itemize}
+\item Let $H: \{0,1\}^* \rightarrow \mathbb{Z}_q$ be a random oracle.
+\begin{itemize}
+\item [$\circ$] Gen chooses $x \in \mathbb{Z}_q$ randomly, computes $y = g^x$ and outputs (pk, sk) = $(y,x)$.
+\item [$\circ$] Sig does the following on input $x$ and $m$:
+\begin{enumerate}
+\item it chooses $r \in \mathbb{Z}_q$ randomly and computes $\alpha = g^r$,
+\item it computes $c = H(y, \alpha, m),$
+\item it computes $d = cx + r \mod q$ and outputs $(\alpha, d)$.
+\end{enumerate}
+\item [$\circ$] Vf takes the public key $y$, a message $m$ and a candidate signature $(\alpha, d)$, and accepts iff $y^{H(y,\alpha, m)}\alpha = g^d$.
+\end{itemize}
+\end{itemize}
+
+\subsubsection*{PKIs}
+
+\begin{itemize}
+\item We have constructed public-key crypotsystems and signature schemes.
+\item Only the holder of the secret key can decrypt ciphertexts and sign messages.
+\item How do we know who holds the secret key corresponding to a public key?
+\end{itemize}
+
+\subsubsection*{Signing Public Keys of Others}
+
+\begin{itemize}
+\item Suppose that Alice computes a signature $\sigma_{A,B} = $ Sig$_{\text{sk}_A}$ (pk$_B, Bob$) of bob's public key pk$_B$ and his identity and hands it to Bob.
+\item Suppose that Eve holds Alice's public key pk$_A$.
+\item Then anybody can hand (pk$_B$, $\sigma_{A,B}$) directly to Eve, and Eve will be convinced that pk$_B$ is Bob's key (assuming she trusts Alice).
+\end{itemize}
+
+\subsubsection*{Certificate}
+
+\begin{itemize}
+\item A certificate is a signature of a public key along with some information on how the key may be used, e.g., it may allow the holder to issue certificates.
+\item A certificate is valid for a given setting if the signature is valid and the usage information in the certificate matches that of the setting.
+\item Some parties mus be trusted to issue certificates. These parties are called Certificate Authorities (CA).
+\end{itemize}
+
+\subsubsection*{Certificate Chains}
+
+\begin{itemize}
+\item A CA may be "distribute" using in certificate chains.
+\begin{itemize}
+\item [$\circ$] Suppose that Bob holds valid certificates $$\sigma_{0,1}, \sigma_{1,2}, ...,  \sigma_{n-1,n}$$ where $\sigma_{i-1,i}$ is a certificate of pk$_{P_i}$ by $P_{i-1}$.
+\item [$\circ$] Who does Bob trust?
+\end{itemize}
+\end{itemize}
+
+\subsection*{Pseudo-random Generators}
+
+\begin{itemize}
+\item Everything we have done so far requires randomness!
+\item Can we "generate" random strings?
+\item We could flip actual coins. This would be extremely impractical and slow (and boring unless you are Rain man).
+\item We could generate "physical" randomness using hardware, e.g., measuring radioactive decay
+\begin{itemize}
+\item [$\circ$] Slow or expensive.
+\item [$\circ$] Hard to verify and trust.
+\item [$\circ$] Biased output.
+\end{itemize}
+\item We could use a deterministic algorithm that outputs a "random looking string", but would that be secure?
+\end{itemize}
+
+\subsubsection*{Pseudo-Random Generator}
+
+\begin{itemize}
+\item A pseudo-random generator requires a short random string and deterministically expands this to a longer "random looking" string. 
+\item This looks promising:
+\begin{itemize}
+\item [$\circ$] Fast and cheap?
+\item [$\circ$] Practical since it can be implemented in software or hardware?
+\item [$\circ$] What is "random looking"?
+\end{itemize}
+\end{itemize}
+
 \end{document}
